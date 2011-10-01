@@ -41,6 +41,8 @@ my $schedule;
 
 my $config  = App::Wubot::Config->new( { root => $config_directory } );
 
+my $reactor = App::Wubot::Reactor->new();
+
 my $timelength = App::Wubot::Util::TimeLength->new();
 
 # all the plugins share a message store object rather than letting
@@ -81,6 +83,7 @@ my $timer = AnyEvent->timer( after    => 1,
                                      next if $time > $now;
 
                                      for my $plugin ( @{ $schedule->{$time} } ) {
+
                                          my $plugin_config = $config->get_plugin_config( $plugin );
 
                                          my $results = $plugin_objs->{$plugin}->check( $plugin_config );
@@ -143,6 +146,7 @@ sub create_plugin_instance {
                                     cache_file    => "$cache_directory/$plugin.yaml",
                                     key           => $plugin,
                                     reactor_queue => $message_store,
+                                    wubot_reactor => $reactor,
                                 } );
 
     $plugin_objs->{ $plugin }->init( $plugin_config );
