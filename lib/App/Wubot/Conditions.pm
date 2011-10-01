@@ -100,6 +100,16 @@ sub istrue {
 
     return unless $condition;
 
+    # if we have previously parsed this condition, look up the parsed
+    # results in the cache.
+    if ( $self->{cache}->{ $condition } ) {
+        return $self->{cache}->{ $condition }->( $message );
+    }
+
+    # store the parsed rule information
+    my $parsed;
+
+    # try to parse the rule
     if ( $condition =~ m|^(.*)\s+AND\s+(.*)$| ) {
         my ( $first, $last ) = ( $1, $2 );
 
@@ -117,87 +127,119 @@ sub istrue {
         return 1;
     }
     elsif ( $condition =~ m|^([\w\.]+)\s+equals\s+(.*)$| ) {
-        my ( $field, $value ) = ( $1, $2 );
+        my $field = $1;
+        my $value = $2;
+        $parsed  = sub { my $msg = shift;
 
-        return 1 if $message->{ $field } && $message->{ $field } eq $value;
-        return;
+                         return unless defined $msg;
+                         return unless defined $field;
+
+                         return unless defined $value;
+
+                         return unless $msg->{$field};
+
+                         return 1 if $msg->{$field} eq $value;
+
+                         return;
+                     };
     }
     elsif ( $condition =~ m|^([\w\.]+)\s+matches\s+(.*)$| ) {
-        my ( $field, $value ) = ( $1, $2 );
+        my $field = $1;
+        my $value = $2;
+        $parsed  = sub { my $msg = shift;
 
-        return 1 if $message->{ $field } && $message->{ $field } =~ m/$value/;
-        return;
+                         return 1 if    $field
+                                     && $value
+                                     && $msg->{ $field }
+                                     && $msg->{ $field } =~ m/$value/;
+                     };
     }
     elsif ( $condition =~ m|^([\w\.]+)\s+imatches\s+(.*)$| ) {
-        my ( $field, $value ) = ( $1, $2 );
+        my $field = $1;
+        my $value = $2;
+        $parsed  = sub { my $msg = shift;
 
-        return 1 if $message->{ $field } && $message->{ $field } =~ m/$value/i;
-        return;
+                         return 1 if    $field
+                                     && $value
+                                     && $msg->{ $field }
+                                     && $msg->{ $field } =~ m/$value/i;
+
+                         return;
+                     };
     }
     elsif ( $condition =~ m|^contains ([\w\.]+)$| ) {
         my $field = $1;
+        $parsed  = sub { my $msg = shift;
 
-        return 1 if exists $message->{ $field };
-        return;
+                         return 1 if exists $msg->{ $field };
+                         return;
+                     };
     }
     elsif ( $condition =~ m|^([\w\.]+) is true$| ) {
         my $field = $1;
+        $parsed  = sub { my $msg = shift;
 
-        if ( $message->{ $field } ) {
-            return if $message->{ $field } eq "false";
-            return 1;
-        }
-        return;
+                         return unless $msg->{ $field };
+                         return if $msg->{ $field } eq "false";
+                         return 1;
+                     };
     }
     elsif ( $condition =~ m|^([\w\.]+) is false$| ) {
         my $field = $1;
+        $parsed  = sub { my $msg = shift;
 
-        return 1 unless $message->{$field};
-        return 1 if $message->{ $field } eq "false";
-        return;
+                         return 1 unless $msg->{$field};
+                         return 1 if $msg->{ $field } eq "false";
+                         return;
+                     };
     }
     elsif ( $condition =~ m/^([\w\d\.\_]+) ((?:>|<)=?) ([\w\d\.\_]+)$/ ) {
         my ( $left, $op, $right ) = ( $1, $2, $3 );
+        $parsed  = sub { my $msg = shift;
 
-        my $first;
-        if ( looks_like_number( $left ) ) {
-            $first = $left;
-        }
-        else {
-            return unless exists $message->{$left};
-            $first = $message->{$left};
-            return unless looks_like_number( $first )
-        }
+                         my $first;
+                         if ( looks_like_number( $left ) ) {
+                             $first = $left;
+                         } else {
+                             return unless exists $msg->{$left};
+                             $first = $msg->{$left};
+                             return unless looks_like_number( $first )
+                         }
 
-        my $second;
-        if ( looks_like_number( $right ) ) {
-            $second = $right;
-        }
-        else {
-            return unless exists $message->{$right};
-            $second = $message->{$right};
-            return unless looks_like_number( $second )
-        }
+                         my $second;
+                         if ( looks_like_number( $right ) ) {
+                             $second = $right;
+                         } else {
+                             return unless exists $msg->{$right};
+                             $second = $msg->{$right};
+                             return unless looks_like_number( $second )
+                         }
 
-        if ( $op eq ">" ) {
-            return 1 if $first > $second;
-        }
-        elsif ( $op eq ">=" ) {
-            return 1 if $first >= $second;
-        }
-        elsif ( $op eq "<" ) {
-            return 1 if $first < $second;
-        }
-        elsif ( $op eq "<=" ) {
-            return 1 if $first <= $second;
-        }
+                         if ( $op eq ">" ) {
+                             return 1 if $first > $second;
+                         } elsif ( $op eq ">=" ) {
+                             return 1 if $first >= $second;
+                         } elsif ( $op eq "<" ) {
+                             return 1 if $first < $second;
+                         } elsif ( $op eq "<=" ) {
+                             return 1 if $first <= $second;
+                         }
 
+                         return;
+                     };
+    }
+    else {
+        $self->logger->error( "Condition could not be parsed: $condition" );
         return;
     }
 
-    $self->logger->error( "Condition could not be parsed: $condition" );
-    return;
+    $self->logger->trace( "Parsed new condition: $condition" );
+
+    $self->{cache}->{$condition} = $parsed;
+
+    return $parsed->( $message );
 }
+
 
 __PACKAGE__->meta->make_immutable;
 
