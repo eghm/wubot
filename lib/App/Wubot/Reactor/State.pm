@@ -64,6 +64,10 @@ sub react {
         $cache->{ $key }->{ $field }->{notify_interval} = $config->{notify_interval};
     }
 
+    if ( $config->{mailbox} ) {
+        $cache->{ $key }->{ $field }->{mailbox} = $config->{mailbox};
+    }
+
     if ( exists $cache->{ $key }->{ $field }->{value} ) {
         $lastvalue = $cache->{ $key }->{ $field }->{value} || 0;
     }
@@ -173,33 +177,36 @@ sub monitor {
 
                 my $check_age = $now - $cache->{$key}->{$field}->{lastupdate};
 
-                if ( $check_age > 600 ) {
+                my $notify_interval = $cache->{$key}->{$field}->{notify_interval};
 
-                    my $notify_interval = $cache->{$key}->{$field}->{notify_interval};
-                    if ( $notify_interval ) {
+                my $mailbox         = $cache->{$key}->{$field}->{mailbox};
 
-                        my $interval = $self->timelength->get_seconds( $notify_interval );
-                        $self->logger->debug( "Checking notify_interval: $notify_interval: $interval" );
+                return unless $notify_interval;
 
-                        my $last_notify = $cache->{$key}->{$field}->{last_notify} || 0;
-                        my $notify_age = $now - $last_notify;
+                my $interval = $self->timelength->get_seconds( $notify_interval );
+                $self->logger->trace( "Checking if $key: $check_age < $interval" );
 
-                        if ( $last_notify && $notify_age < $interval ) {
-                            $self->logger->debug( "Suppressing notification, last=$notify_age, interval=$interval" );
-                            next FIELD;
-                        }
+                next FIELD unless $check_age > $interval;
 
-                        $cache->{$key}->{$field}->{last_notify} = $now;
-                        YAML::XS::DumpFile( "$directory/$entry", $cache );
-                    }
+                $self->logger->debug( "Checking notify_interval: $notify_interval: $interval" );
 
-                    my $check_age_string = $self->timelength->get_human_readable( $check_age );
-                    my $warning = "Warning: cache data for $key:$field not updated in $check_age_string";
-                    $self->logger->warn( $warning );
+                my $last_notify = $cache->{$key}->{$field}->{last_notify} || 0;
+                my $notify_age = $now - $last_notify;
 
-                    push @react, { key => $key, subject => $warning, lastupdate => $now };
-
+                if ( $last_notify && $notify_age < $interval ) {
+                    $self->logger->debug( "Suppressing notification, last=$notify_age, interval=$interval" );
+                    next FIELD;
                 }
+
+                $cache->{$key}->{$field}->{last_notify} = $now;
+                YAML::XS::DumpFile( "$directory/$entry", $cache );
+
+                my $check_age_string = $self->timelength->get_human_readable( $check_age );
+                my $warning = "Warning: cache data for $key:$field not updated in $check_age_string";
+                $self->logger->warn( $warning );
+
+                push @react, { key => $key, subject => $warning, lastupdate => $now, mailbox => $mailbox };
+
             }
         }
 
