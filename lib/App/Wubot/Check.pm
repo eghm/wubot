@@ -4,6 +4,7 @@ use Moose;
 # VERSION
 
 use Benchmark;
+use Class::Load;
 use YAML::XS;
 
 use App::Wubot::Logger;
@@ -46,7 +47,8 @@ has 'instance'   => ( is      => 'ro',
                       default => sub {
                           my $self = shift;
                           my $class = $self->class;
-                          eval "require $class";  ## no critic
+
+                          Class::Load::load_class( $class );
                           if ( $@ ) {
                               die "ERROR: loading class: $class => $@";
                           }
