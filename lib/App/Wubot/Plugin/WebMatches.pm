@@ -11,7 +11,6 @@ with 'App::Wubot::Plugin::Roles::Plugin';
 
 
 has 'fetcher' => ( is  => 'ro',
-                   isa => 'App::Wubot::Util::WebFetcher',
                    lazy => 1,
                    default => sub {
                        return App::Wubot::Util::WebFetcher->new();
@@ -43,12 +42,17 @@ sub check {
 
     my $count;
 
-  MATCH:
-    while ( $content =~ m|$regexp|mg ) {
+    my @matches;
+    if ( $config->{modifier_s} ) {
+        @matches = $content =~ m|$regexp|sg;
+    }
+    else {
+        @matches = $content =~ m|$regexp|mg;
+    }
+
+    for my $match ( @matches ) {
 
         $count++;
-
-        my $match = $1;
 
         $self->logger->trace( "MATCH: $match" );
 
@@ -71,7 +75,7 @@ sub check {
 
     unless ( $count ) {
         $self->logger->error( $self->key . ": no matches found" );
-        return { cache => $cache, react => { subject => "no matches found" } };
+        return { cache => $cache, react => [ { subject => "no matches found" } ] };
     }
 
     return { react => \@react, cache => $cache };
@@ -112,6 +116,17 @@ In the event of a failure retrieving content from the specified URL, a
 message will be sent containing a subject field such as:
 
   subject: Request failure: {$error}
+
+=head1 REGEXP MODIFIERS
+
+By default the matching regexp will use the modifiers 'mg'.
+
+If your regexp needs to match a pattern that spans multiple lines, you
+will probably want to use the 'sg' modifiers instead.  To use 'sg',
+set the following in your plugin configuration:
+
+  modifier_s: 1
+
 
 =head1 HINTS
 
