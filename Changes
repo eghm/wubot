@@ -1,5 +1,24 @@
 Revision history for Wubot
 
+0.3.7 2011-10-10T10:41PDT
+
+  - replace YAML with YAML::XS
+  - add a new FirefoxBookmarks monitor
+  - significantly performance increase in App::Wubot::Conditions
+  - add 'username' to console notification
+  - remove duplicated 'username' data from subject of IRC monitor
+  - improvements to the State reactor
+  - monitors share a single instance of the reactor object
+  - WebMatches plugin sends a warning if no matches found
+  - WebMatches can now use 's' regexp modifier instead of the default 'm'
+  - XMLTV plugin properly reports count of processed entries
+  - wubot-check does not attempt to vacuum message queue db
+  - wubot-webui uses App::Wubot::Logger
+  - OsxActiveApp determines active application with applescript rather than python script
+  - a few log level adjustments
+  - multiple documentation tweaks
+  - handle bug with failure performing vacuum on non-existent database
+
 0.3.6 2011-09- 2T01:30PDT
 
   - update docs
