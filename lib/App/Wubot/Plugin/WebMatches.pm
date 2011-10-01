@@ -41,8 +41,12 @@ sub check {
 
     $self->logger->debug( "REGEXP: $regexp" );
 
+    my $count;
+
   MATCH:
     while ( $content =~ m|$regexp|mg ) {
+
+        $count++;
 
         my $match = $1;
 
@@ -64,6 +68,11 @@ sub check {
     }
 
     $self->cache_expire( $cache );
+
+    unless ( $count ) {
+        $self->logger->error( $self->key . ": no matches found" );
+        return { cache => $cache, react => { subject => "no matches found" } };
+    }
 
     return { react => \@react, cache => $cache };
 }
