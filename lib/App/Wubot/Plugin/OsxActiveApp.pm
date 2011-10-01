@@ -18,13 +18,7 @@ with 'App::Wubot::Plugin::Roles::Cache';
 with 'App::Wubot::Plugin::Roles::Plugin';
 
 my $command =<<EOF;
-
-/usr/bin/python -c "
-from AppKit import NSWorkspace
-activeAppName = NSWorkspace.sharedWorkspace().activeApplication()['NSApplicationName']
-print activeAppName
-"
-
+/usr/bin/osascript -e 'tell application "System Events"' -e 'set frontApp to name of first application process whose frontmost is true' -e 'end tell'
 EOF
 
 sub check {
@@ -60,10 +54,12 @@ App::Wubot::Plugin::OsxActiveApp - monitor current active application in OS X
 
 =head1 DESCRIPTION
 
-Runs a little python command-line script (see the source) to determine
+Runs a bit of applescript using the osascript command to determine
 which application is currently active in OS X.
 
-Sends a message containing:
+  /usr/bin/osascript -e 'tell application "System Events"' -e 'set frontApp to name of first application process whose frontmost is true' -e 'end tell'
+
+Sends a message containing the field:
 
   application: {appname}
 
