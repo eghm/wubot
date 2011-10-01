@@ -117,6 +117,10 @@ significantly degrade performance.
 sub initialize_db {
     my ( $self, $directory ) = @_;
 
+    unless ( $directory ) {
+        $self->logger->logconfess( "ERROR: initialize_directory called without directory" );
+    }
+
     unless ( -d $directory ) {
         mkpath( $directory );
     }
