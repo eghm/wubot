@@ -24,6 +24,8 @@ $ENV{MOJO_APP} ||= 'App::Wubot::Web';
 
 #app->secret('Wubot Web User Interface');
 
+use App::Wubot::Logger;
+
 # Start commands
 Mojolicious::Commands->start;
 
