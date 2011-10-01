@@ -33,10 +33,10 @@ sub check {
         unlink $tmpfile;
     }
 
-    print "Copying $file to $tmpfile\n";
+    $self->logger->debug( "Copying $file to $tmpfile" );
     system( "cp", $file, $tmpfile );
 
-    print "Converting to xml...\n";
+    $self->logger->debug( "Converting to xml..." );
     system( "plutil", "-convert", "xml1", $tmpfile );
 
 

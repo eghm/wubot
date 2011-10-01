@@ -24,7 +24,7 @@ sub react {
 
         for my $key ( keys %{ $config->{set} } ) {
 
-            $self->logger->info( "setting field $key to $config->{set}->{$key}" );
+            $self->logger->debug( "setting field $key to $config->{set}->{$key}" );
             $message->{ $key } = $config->{set}->{$key};
 
         }
