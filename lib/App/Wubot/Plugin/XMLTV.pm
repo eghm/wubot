@@ -63,7 +63,7 @@ sub check {
         $self->logger->warn( "Downloading and parsing XMLTV Data" );
 
         my $tv = App::Wubot::Util::XMLTV->new();
-        $tv->fetch_process_data( $xmlfile );
+        $count = $tv->fetch_process_data( $xmlfile );
 
         $self->logger->warn( "Finished parsing XMLTV Data" );
 
