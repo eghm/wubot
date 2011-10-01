@@ -42,6 +42,10 @@ sub react {
         $subject = "$title => $subject";
     }
 
+    if ( $message->{username} ) {
+        $subject = "$message->{username}: $subject";
+    }
+
     if ( $message->{key} ) {
         $subject = "[$message->{key}] $subject";
     }
