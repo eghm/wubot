@@ -336,7 +336,7 @@ test "broken yaml file" => sub {
 
     open(my $fh, ">", $path )
         or die "Couldn't open $path for writing: $!\n";
-    print $fh "---\nfoo\n\n";
+    print $fh "---\nfoo: bar\nabc: def: ghi\n\n";
     close $fh or die "Error closing file: $!\n";
 
     is( $self->reactor->_read_userfile( 'dude' ),
@@ -359,13 +359,11 @@ test "run rules in contact file" => sub {
     my $directory = $self->reactor->directory;
 
     my $dude = << '...';
-
 ---
 aliases:
   - lebowski
 
 rules:
-
   - name: set foo field on messages from the dude
     plugin: SetField
     config:
@@ -374,7 +372,11 @@ rules:
 
 ...
 
-    YAML::XS::DumpFile( "$directory/dude.yaml", $dude );
+    my $path = "$directory/dude.yaml";
+    open(my $fh, ">", $path)
+        or die "Couldn't open $path for writing: $!\n";
+    print $fh $dude;
+    close $fh or die "Error closing file: $!\n";
 
     is_deeply( $self->reactor->react( { username => 'dude' }, {} )->{foo},
                'bar',
