@@ -110,7 +110,8 @@ commands are supported:
   m         apply 'readme' tag to the item and mark it read, for later perusal
   x         remove the 'readme' tag and update the 'seen' flag time to now
   tr xx     translate the subject from the specified language, see L<Lingua::Translate> for more info
-  mytag     any unrecognized input will be treated as a tag which will be applied to the item
+  mytag     any non-command input will be treated as a tag which will be applied to the item
+  -mytag    preceeding tag name with a minus sign removes the tag from the item
 
 Multiple commands may be comma separated.
 

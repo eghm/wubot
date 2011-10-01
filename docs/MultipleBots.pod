@@ -41,6 +41,12 @@ that I can get to my load and idle graphs locally even while I'm
 offline, but then I can also see those stats from another workstation
 on the wubot server.
 
+See also:
+
+  - https://github.com/wu/wubot/raw/master/docs/img/wubot.png
+
+  - https://github.com/wu/wubot/raw/master/docs/img/multibot.png
+
 =head2 XMPP
 
 The mechanism for sending messages between wubot instances on separate

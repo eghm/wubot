@@ -43,8 +43,6 @@ can perform actions such as:
   - your own custom action written in perl
   - ignore the message, the equivalent of routing it to /dev/null
 
-=back
-
 Beyond just doing something with the message or portions of the
 message, you also have the option to modify the message, e.g.:
 
@@ -75,6 +73,10 @@ L<App::Wubot::Guide::MultipleBots>.
 This project is still under construction.
 
 To get started, see L<App::Wubot::Guide::GettingStarted>.
+
+See also:
+
+  - https://github.com/wu/wubot/raw/master/docs/img/wubot.png
 
 =head1 REACTIVE AUTOMATION
 

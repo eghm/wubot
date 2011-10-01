@@ -48,7 +48,7 @@ App::Wubot::Plugin::OsxVolume - monitor OS X volume
 
 =head1 SYNOPSIS
 
-  ~/wubot/config/plugins/OsxVolume/navi.yaml.navi
+  ~/wubot/config/plugins/OsxVolume/navi.yaml
 
   ---
   min_volume: 26
