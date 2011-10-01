@@ -12,6 +12,7 @@ use YAML::XS;
 
 use lib "$FindBin::Bin/../lib";
 
+use App::Wubot::LocalMessageStore;
 use App::Wubot::Logger;
 use App::Wubot::SQLite;
 use App::Wubot::Check;
@@ -45,8 +46,11 @@ if ( -r $cache_file ) {
     $logger->info( "Found cache file: $cache_file" );
 }
 
+my $messenger = App::Wubot::LocalMessageStore->new( { novacuum => 1 } );
+
 my $check = App::Wubot::Check->new( { key           => "$plugin-$key",
                                       class         => "App::Wubot::Plugin::$plugin",
+                                      reactor_queue => $messenger,
                                       cache_file    => $cache_file,
                                   } );
 
