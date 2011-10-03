@@ -27,16 +27,7 @@ sub check {
 
     $self->logger->debug( "Fetching content from: $config->{url}" );
 
-    my $content;
-    eval {                          # try
-        $content = $self->fetcher->fetch( $config->{url}, $config );
-        1;
-    } or do {                       # catch
-        my $error = $@;
-        my $subject = "Request failure: $error";
-        $self->logger->error( $self->key . ": $subject" );
-        return { react => { subject => $subject } };
-    };
+    my $content = $self->fetcher->fetch( $config->{url}, $config );
 
     my $field = $config->{field} || 'content';
 

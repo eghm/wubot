@@ -14,6 +14,10 @@ sub check {
     my $cache  = $inputs->{cache};
     my $config = $inputs->{config};
 
+    if ( $config->{die} ) {
+        die "Testing Error"
+    }
+
     my $react;
 
     # just setting the cache params in the config

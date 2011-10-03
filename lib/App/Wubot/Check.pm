@@ -196,7 +196,6 @@ sub check {
     }
 
     my $results;
-    my $status = 3;
 
     eval {
         # set the alarm
@@ -205,29 +204,45 @@ sub check {
 
         $results = $self->instance->check( { config => $config, cache => $cache } );
 
-        $status = 0;
-
         # cancel the alarm
         alarm 0;
+
+        1;
+    } or do {
+        my $error = $@;
+
+        my $message;
+
+        if ( $error eq "alarm\n" ) {
+            $self->logger->error( "Timed out after $timeout seconds for check: ", $self->key );
+            $message->{subject} = "Timed out after $timeout seconds";
+        }
+        else {
+            $self->logger->error( "CRITICAL: $error" );
+            $message->{subject} = "CRITICAL: $error";
+        }
+
+        $message->{errmsg} = $message->{subject};
+
+        # attempt to remove package and line number from subject, left
+        # in the 'errmsg'
+        $message->{subject} =~ s|\sat\s\S+\sline\s\d+\.?\n$||;
+
+        $message->{status} = "CRITICAL";
+        $message->{color}  = "RED";
+
+        # on failure, if the config contains a URL, set it as the
+        # message link.  There is probably a better place to do this.
+        if ( $config->{url} ) {
+            $message->{link} = $config->{url};
+        }
+
+        $results->{react} = $message;
     };
-
-    my $error = $@;
-
-    if ( $error ) { $status = 2 }
 
     my $end = new Benchmark;
     my $diff = timediff( $end, $start );
     $self->logger->debug( $self->key, ":", timestr( $diff, 'all' ) );
-
-    if ( $error ) {
-        if ( $error eq "alarm\n" ) {
-            $self->logger->error( "Timed out after $timeout seconds for check: ", $self->key );
-        }
-        else {
-            $self->logger->error( "Check died: $error" );
-        }
-        return;
-    }
 
     if ( $results->{react} ) {
         $self->logger->debug( " - running rules defined in react" );

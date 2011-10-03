@@ -32,8 +32,7 @@ sub check {
     my $content = $self->_get_content( $config->{url}, $config );
 
     unless ( $content ) {
-        $self->logger->error( "Critical: outlook: No content retrieved!" );
-        return;
+        $self->logger->logdie( "Critical: outlook: No content retrieved!" );
     }
 
     my $count = scalar $self->_get_msgids( $content );

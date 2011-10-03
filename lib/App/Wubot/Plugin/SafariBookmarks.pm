@@ -8,6 +8,14 @@ use XML::Simple;
 
 use App::Wubot::Logger;
 
+has 'logger'  => ( is => 'ro',
+                   isa => 'Log::Log4perl::Logger',
+                   lazy => 1,
+                   default => sub {
+                       return Log::Log4perl::get_logger( __PACKAGE__ );
+                   },
+               );
+
 with 'App::Wubot::Plugin::Roles::Cache';
 with 'App::Wubot::Plugin::Roles::Plugin';
 
@@ -22,9 +30,7 @@ sub check {
     my $cache  = $inputs->{cache};
 
     unless ( -r $file ) {
-        my $subject = "Error: bookmarks file not found: $file";
-        $self->logger->error( $self->key . ": $subject" );
-        return { cache => $cache, react => { subject => $subject } };
+        $self->logger->logdie( "Error: bookmarks file not found: $file" );
     }
 
     my $tmpfile = "/tmp/bookmarks.plist";

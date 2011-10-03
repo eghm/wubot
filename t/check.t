@@ -1,7 +1,7 @@
 #!/perl
 use strict;
 
-use Test::More tests => 30;
+use Test::More tests => 34;
 
 use File::Temp qw/ tempdir /;
 use Test::Differences;
@@ -189,4 +189,30 @@ my $cache_file = "$tempdir/storage.yaml";
     );
 }
 
+# status
+{
+    my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
 
+    ok( my $check = App::Wubot::Check->new( { class             => 'App::Wubot::Plugin::TestCase',
+                                              cache_file        => $cache_file,
+                                              key               => 'TestCase-testcase',
+                                              reactor_queue_dir => $tempdir,
+                                          } ),
+        "Creating a new check instance"
+    );
+
+    ok( my $results = $check->check( { die => 1 } ),
+        "Calling check() method with 'die' param set"
+    );
+
+    is( $results->{react}->{status},
+        'CRITICAL',
+        "Checking that check status is CRITICAL when plugin calls 'die'"
+    );
+
+    is( $results->{react}->{subject},
+        "Check died: Testing Error",
+        "Checking that subject contains error message"
+    );
+
+}

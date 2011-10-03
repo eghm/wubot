@@ -5,6 +5,14 @@ use Moose;
 
 use App::Wubot::Logger;
 
+has 'logger'  => ( is => 'ro',
+                   isa => 'Log::Log4perl::Logger',
+                   lazy => 1,
+                   default => sub {
+                       return Log::Log4perl::get_logger( __PACKAGE__ );
+                   },
+               );
+
 with 'App::Wubot::Plugin::Roles::Cache';
 with 'App::Wubot::Plugin::Roles::Plugin';
 
@@ -20,7 +28,7 @@ sub check {
     my $path = $config->{path};
 
     unless ( -r $path ) {
-        return { react => { subject => "path not found: $path" } };
+        $self->logger->logdie( "path not found: $path" );
     }
 
     my $last_modified = ( stat $path )[9];

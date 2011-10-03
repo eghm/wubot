@@ -42,9 +42,7 @@ sub check {
     my ( $load01, $load05, $load15 ) = $self->_parse_uptime( $uptime_output );
 
     unless ( defined $load01 && defined $load05 && defined $load15 ) {
-        my $subject = $self->key . ": ERROR: unable to parse uptime output: $uptime_output";
-        $self->logger->warn( $subject );
-        return { react => { subject => $subject } };
+        $self->logger->logdie( "ERROR: unable to parse uptime output: $uptime_output" );
     }
 
     $self->logger->debug( "load: $load01 => $load05 => $load15" );
@@ -53,10 +51,10 @@ sub check {
     my $status = "ok";
     if ( $inputs->{config}->{critical_load} && $load01 > $inputs->{config}->{critical_load} ) {
         $subject = "critical: load over last 1 minute is $load01 ";
-        $status = 'critical';
+        $status = 'CRITICAL';
     } elsif ( $inputs->{config}->{warning_load} && $load01 > $inputs->{config}->{warning_load} ) {
         $subject = "warning: load over last 1 minute is $load01 ";
-        $status = 'warning';
+        $status = 'WARNING';
     }
 
     my $results = { load01  => $load01,
