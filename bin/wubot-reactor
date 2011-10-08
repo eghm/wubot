@@ -148,6 +148,7 @@ push @timers, AnyEvent->timer( after => 1,
                                        my $time = $timelength->get_human_readable( $now - $lastupdate );
                                        react( { subject    => "reactor on $hostname has not received a message in $time",
                                                 key        => 'wubot-reactor',
+                                                status     => 'WARNING',
                                                 noforward  => 1,
                                                 lastupdate => $now,
                                             } );
