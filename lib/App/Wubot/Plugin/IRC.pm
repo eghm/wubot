@@ -49,7 +49,11 @@ sub check {
                                              $self->con->send_srv ("JOIN", $config->{channel} );
                                              $self->con->enable_ping( 60,
                                                                       sub {
-                                                                          $self->reactor->( { subject => "ping: no response received" }, $config );
+                                                                          $self->reactor->(
+                                                                              { subject => "ping: no response received",
+                                                                                status  => 'CRITICAL',
+                                                                            },
+                                                                              $config );
                                                                           $self->con->disconnect;
                                                                           $self->con( AnyEvent::IRC::Client->new() );
                                                                           $self->initialized( 0 );
@@ -57,11 +61,11 @@ sub check {
                                          }
                     );
 
-    $self->con->reg_cb( disconnect  => sub { $self->reactor->( { subject => "disconnected" }, $config );
+    $self->con->reg_cb( disconnect  => sub { $self->reactor->( { subject => "disconnected",
+                                                                 status  => 'CRITICAL',
+                                                             },
+                                                               $config );
                                              $self->initialized( undef );
-
-                                             # replace connection with a new one
-                                             #$self->con( AnyEvent::IRC::Client->new() );
                                          }
                     );
 
@@ -169,7 +173,10 @@ sub check {
 
     $self->initialized( 1 );
 
-    return { react => { subject => "Initialized connection $config->{server}:$config->{port} => $config->{nick}" } };
+    my $msg = "Initialized connection $config->{server}:$config->{port} => $config->{nick}";
+
+    $self->logger->warn( $msg );
+    return { react => { info => $msg } };
 }
 
 sub _close {
