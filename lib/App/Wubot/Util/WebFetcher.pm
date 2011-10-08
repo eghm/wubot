@@ -8,7 +8,13 @@ use LWP::UserAgent;
 
 use App::Wubot::Logger;
 
-use App::Wubot::Util::WebFetcher;
+has 'logger'  => ( is => 'ro',
+                   isa => 'Log::Log4perl::Logger',
+                   lazy => 1,
+                   default => sub {
+                       return Log::Log4perl::get_logger( __PACKAGE__ );
+                   },
+               );
 
 =head1 NAME
 
@@ -133,7 +139,7 @@ sub fetch {
 
     unless ( $res->is_success ) {
         my $results = $res->status_line || "no error text";
-        die "$results\n";
+        $self->logger->logdie( "Failure Fetching Content: $results" );
     }
 
     my $content = $res->decoded_content;

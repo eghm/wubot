@@ -35,7 +35,8 @@ sub check {
         my $pid = fork();
         if ( $pid ) {
             # parent process
-            return { react => { subject  => "launched tivo child process: $pid",
+            return { react => { info     => "launched tivo child process: $pid",
+                                pid      => $pid,
                                 coalesce => $self->key,
                             } }
         }
@@ -48,8 +49,13 @@ sub check {
             mac   => $config->{key},
         );
 
+        my $folder_count;
+        my $show_count;
+
       FOLDER:
         for my $folder ($tivo->folders()) {
+
+            $folder_count++;
 
             my $folder_string = $folder->as_string();
             $self->logger->debug( "TIVO FOLDER: $folder_string" );
@@ -58,6 +64,9 @@ sub check {
 
           SHOW:
             for my $show ($folder->shows()) {
+
+                $show_count++;
+
                 my $show_string = $show->as_string();
 
                 next SHOW if $cache->{shows}->{$show_string};
@@ -95,13 +104,20 @@ sub check {
             }
         }
 
+        unless ( $show_count ) {
+            $self->logger->logdie( "ERROR: now show information retrieved from the tivo" );
+        }
+
+        $self->reactor( { subject => "Retrieved information for $show_count shows in $folder_count folders",
+                      } );
+
         # write out the updated cache
         $self->write_cache( $cache );
 
         1;
     } or do {                   # catch
 
-        $self->logger->info( "ERROR: getting tivo info: $@" );
+        $self->logger->logdie( "ERROR: getting tivo info: $@" );
     };
 
     exit 0;

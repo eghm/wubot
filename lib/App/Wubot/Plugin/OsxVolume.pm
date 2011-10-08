@@ -24,11 +24,11 @@ sub check {
     }
 
     if ( $config->{alert_muted} && $settings->{'output muted'} eq "true" ) {
-        return { react => { subject => 'volume muted' } };
+        return { react => { subject => 'volume muted', status => 'WARNING' } };
     }
 
     if ( $settings->{'output volume'} < $config->{min_volume} ) {
-        return { react => { subject => "low volume: $settings->{'output volume'}" } };
+        return { react => { subject => "low volume: $settings->{'output volume'}", status => 'WARNING' } };
     }
 
     return;

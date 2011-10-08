@@ -41,7 +41,7 @@ sub check {
 
         my $time_passed = $timelength->get_human_readable( $age );
 
-        return { react => { subject => "path has not been updated in $time_passed" } };
+        return { react => { subject => "path has not been updated in $time_passed", status => 'CRITICAL' } };
     }
 
     return;
