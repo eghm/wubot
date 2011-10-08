@@ -106,9 +106,12 @@ sub react {
 
         for my $param ( qw( username color image ) ) {
 
-            if (    $message->{$param}
-                 && ! $message->{"$param\_orig"}
-                 && $message->{$param} ne $userdata->{ $param } ) {
+            if (      $userdata->{ $param }
+                 &&    $message->{ $param }
+                 && !  $message->{ "$param\_orig" }
+                 && $message->{$param} ne $userdata->{ $param }
+             ) {
+
                 $message->{"$param\_orig"} = $message->{$param};
             }
             if ( $userdata->{ $param } ) {
