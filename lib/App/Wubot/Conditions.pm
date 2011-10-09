@@ -114,7 +114,7 @@ sub istrue {
     my $parsed;
 
     # try to parse the rule
-    if ( $condition =~ s{\(([^\(\)]+)\)}{ my $expr = $1;
+    if ( $condition =~ s{\(\s+([^\(\)]+)\s+\)}{ my $expr = $1;
 
                                           if ( $self->istrue( $expr, $message ) ) {
                                               'TRUE';
@@ -281,6 +281,11 @@ __END__
 You can now use parentheses within conditions.  For example:
 
   condition: ( x is false AND y is true ) OR z is true
+
+Note that you must always have at least one space after the opening
+paren, and at least one space before the close paren.  You will also
+need a space in-between a paren and the AND or OR that preceeds or
+follows it.
 
 Another mechanism for nesting conditions is to use rule trees.  Child
 rules are only evaluated if the parent rule matches, so parent and

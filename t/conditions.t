@@ -377,7 +377,42 @@ test 'conditions with parens' => sub {
     ok( $self->reactor->istrue( "( abc equals xyz AND hostname equals navi ) OR hostname equals navi", { hostname => 'navi' } ),
         "Checking '( false AND true ) OR true' is true"
     );
+
+    ok( $self->reactor->istrue( "hostname equals navi AND ( hostname equals navi OR hostname equals navi )", { hostname => 'navi' } ),
+        "Checking 'false AND ( true OR true )' is false"
+    );
 };
+
+test 'keywords in expressions' => sub {
+    my ($self) = @_;
+
+    $self->reset_reactor;
+
+    ok( $self->reactor->istrue( "foo matches xANDy", { foo => 'xANDy' } ),
+        "'AND' embedded in 'matches' expression"
+    );
+    ok( $self->reactor->istrue( "foo matches x ANDy", { foo => 'x ANDy' } ),
+        "'AND' embedded in 'matches' expression"
+    );
+    ok( $self->reactor->istrue( "foo matches xAND y", { foo => 'xAND y' } ),
+        "'AND' embedded in 'matches' expression"
+    );
+
+    ok( $self->reactor->istrue( "foo matches xORy", { foo => 'xORy' } ),
+        "'OR' embedded in 'matches' expression"
+    );
+    ok( $self->reactor->istrue( "foo matches x ORy", { foo => 'x ORy' } ),
+        "'OR' embedded in 'matches' expression"
+    );
+    ok( $self->reactor->istrue( "foo matches xOR y", { foo => 'xOR y' } ),
+        "'OR' embedded in 'matches' expression"
+    );
+
+    ok( $self->reactor->istrue( "foo matches (x|y)", { foo => 'axb' } ),
+        "parens embedded in 'matches' expression"
+    );
+};
+
 
 run_me;
 done_testing;
