@@ -8,8 +8,7 @@ use File::Temp qw/ tempdir /;
 use Test::More;
 
 for my $lib ( 'App::Wubot::Logger',
-              'WWW::Lengthen',
-              'Regexp::Common',
+              'WWW::LongURL',
               'App::Wubot::Reactor::UrlLengthen',
           ) {
 
