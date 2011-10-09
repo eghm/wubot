@@ -6,12 +6,13 @@ priority: INTEGER
 color: VARCHAR(16)
 status: VARCHAR(8)
 title: VARCHAR(128)
+tag: VARCHAR(16)
 body: TEXT
-scheduled: INTEGER
 scheduled_text: VARCHAR(16)
+scheduled_utime: INTEGER
 scheduled_recurrence: VARCHAR(8)
-deadline: INTEGER
 deadline_text: VARCHAR(16)
+deadline_utime: INTEGER
 deadline_recurrence: VARCHAR(8)
 duration: VARCHAR(8)
 lastupdate: INTEGER
