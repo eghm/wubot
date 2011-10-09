@@ -2,8 +2,12 @@
 use strict;
 
 use File::Temp qw/ tempdir /;
-use Test::More 'no_plan';
+use Test::More;
 use Test::Differences;
+
+unless ( $^O eq "darwin" ) {
+    plan skip_all => "This plugin only supported on OS X";
+}
 
 use App::Wubot::Logger;
 use App::Wubot::Plugin::OsxActiveApp;
@@ -25,3 +29,5 @@ use App::Wubot::Plugin::OsxActiveApp;
     );
 
 }
+
+done_testing;

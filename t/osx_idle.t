@@ -2,8 +2,12 @@
 use strict;
 
 use File::Temp qw/ tempdir /;
-use Test::More 'no_plan';
+use Test::More;
 use Test::Differences;
+
+unless ( $^O eq "darwin" ) {
+    plan skip_all => "This plugin only supported on OS X";
+}
 
 use App::Wubot::Logger;
 use App::Wubot::Plugin::OsxIdle;
@@ -247,3 +251,5 @@ my $cache_file = "$tempdir/storage.yaml";
         "Checking that no duplicate 'iddle after being active' message is sent"
     );
 }
+
+done_testing;
