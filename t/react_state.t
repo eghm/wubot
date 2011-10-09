@@ -193,6 +193,7 @@ for my $testcase ( @{ $cases } ) {
                [ { subject => "Warning: cache data for testkey:testfield not updated in 2d",
                    key     => 'testkey',
                    mailbox => undef,
+                   status  => 'WARNING',
                } ],
                "Checking that monitor() returns warning with lastupdate time > 5 minues"
            );
@@ -225,17 +226,20 @@ for my $testcase ( @{ $cases } ) {
     }
 
     is_deeply( \@results,
-               [ { key => 'TestCase1',
+               [ { key     => 'TestCase1',
                    subject => 'Warning: cache data for TestCase1:a not updated in 1h',
                    mailbox => undef,
+                   status  => 'WARNING',
                },
-                 { key => 'TestCase2',
+                 { key     => 'TestCase2',
                    subject => 'Warning: cache data for TestCase2:a not updated in 1h',
                    mailbox => undef,
+                   status  => 'WARNING',
                },
-                 { key => 'TestCase3',
+                 { key     => 'TestCase3',
                    subject => 'Warning: cache data for TestCase3:a not updated in 1h',
                    mailbox => undef,
+                   status  => 'WARNING',
                },
              ],
                "Checking that monitor() returns no changes in cache"
@@ -268,9 +272,10 @@ for my $testcase ( @{ $cases } ) {
         }
 
         is_deeply( \@results,
-                   [ { key => 'TestCase1',
+                   [ { key     => 'TestCase1',
                        subject => 'Warning: cache data for TestCase1:a not updated in 1h',
                        mailbox => undef,
+                       status  => 'WARNING',
                    },
                  ],
                    "Checking that monitor() finds cache data from previous App::Wubot::Reactor::State instance"
@@ -300,9 +305,10 @@ for my $testcase ( @{ $cases } ) {
         }
 
         is_deeply( \@results,
-                   [ { key => 'TestCase1',
+                   [ { key     => 'TestCase1',
                        subject => 'Warning: cache data for TestCase1:a not updated in 1h',
                        mailbox => undef,
+                       status  => 'WARNING',
                    },
                  ],
                    "Checking that monitor() sends a notification for stale cache"
@@ -327,9 +333,10 @@ for my $testcase ( @{ $cases } ) {
         }
 
         is_deeply( \@results,
-                   [ { key => 'TestCase1',
+                   [ { key     => 'TestCase1',
                        subject => 'Warning: cache data for TestCase1:a not updated in 1h',
                        mailbox => undef,
+                       status  => 'WARNING',
                    },
                  ],
                    "Checking that monitor() returns notification after notify interval"
