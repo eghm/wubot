@@ -43,11 +43,21 @@ Or simply:
 
   cpan App::Wubot
 
-I am still working out some issues with the CPAN install, especially
-with the optional prereqs.
+Note that none of the optional prereqs get installed using this
+method.  So while this will get you up and running with the minimum
+required modules, you may not have the necessary prereqs to run all
+the monitors or reactors.  To get all the optional prereqs, and to get
+the latest version of App::Wubot available, consider the following
+method:
+
+  cpan Dist::Zilla
+  git clone git://github.com/wu/wubot.git
+  cd wubot
+  dzil authordeps | xargs cpan
+  dzil listdeps | xargs cpan
 
 Note that you will probably have to create a ~/wubot and ~/logs
-directory.  In the future these directories should be configurable.
+directory.  In the future these directories will be configurable.
 
 Also will also need to create ~/wubot/schemas, and copy the files from
 the 'config/schemas' directory into that directory.
@@ -55,6 +65,7 @@ the 'config/schemas' directory into that directory.
 To get the web interface up and going, see here:
 
   - http://search.cpan.org/perldoc?App::Wubot::Guide::WebUI
+
 
 =head1 LICENSE AND COPYRIGHT
 
