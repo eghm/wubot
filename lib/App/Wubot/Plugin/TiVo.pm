@@ -193,7 +193,7 @@ although that is not yet documented.
 
 You can download a program manually by using a curl command such as:
 
-  curl --digest -k -u tivo:{media_key} -c cookies.txt -o {some_filename}.tivo {url}
+  curl --digest -k -u tivo:{media_key} -c cookies.txt -o {some_filename}.tivo '{url}'
 
 Note that some programs (e.g. those that are downloaded from the web)
 may be protected, and can not be downloaded.
