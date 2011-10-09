@@ -11,8 +11,11 @@ changed.
 The recommended method for using the web ui is to clone the wubot git
 repository and run the web ui from there.
 
+  cpan Dist::Zilla
   git clone git://github.com/wu/wubot.git
   cd wubot
+  dzil authordeps | xargs cpan
+  dzil listdeps | xargs cpan
   cp config/webui.yaml ~/wubot/config/
   bin/wubot-webui daemon
 
