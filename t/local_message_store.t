@@ -5,6 +5,12 @@ use File::Temp qw/ tempdir /;
 use Sys::Hostname;
 use Test::More 'no_plan';
 
+BEGIN {
+    if ( $ENV{HARNESS_ACTIVE} ) {
+        $ENV{WUBOT_SCHEMAS} = "config/schemas";
+    }
+}
+
 use App::Wubot::LocalMessageStore;
 use App::Wubot::Logger;
 

@@ -6,8 +6,13 @@ use Test::More tests => 64;
 use File::Temp qw/ tempdir /;
 
 BEGIN {
+    if ( $ENV{HARNESS_ACTIVE} ) {
+        $ENV{WUBOT_SCHEMAS} = "config/schemas";
+    }
+
     $ENV{TZ} = "America/Los_Angeles";
 }
+
 
 use App::Wubot::Logger;
 use App::Wubot::Util::Tasks;

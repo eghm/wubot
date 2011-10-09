@@ -10,10 +10,14 @@ use File::Temp qw/ tempdir /;
 use Test::Exception;
 use YAML::XS;
 
+BEGIN {
+    if ( $ENV{HARNESS_ACTIVE} ) {
+        $ENV{WUBOT_SCHEMAS} = "config/schemas";
+    }
+}
+
 use App::Wubot::Logger;
 use App::Wubot::SQLite;
-
-
 
 has sqlite => (
     is      => 'rw',
@@ -613,9 +617,6 @@ test "testing schema config file with named schema" => sub {
 
     system( "mkdir", "$tempdir2/$dir" );
     YAML::XS::DumpFile( "$tempdir2/$dir/$table.yaml", $xyz_schema );
-
-    system( "find $tempdir2" );
-    system( "cat $tempdir2/$dir/$table.yaml" );
 
     $self->reset_sqlite;
 

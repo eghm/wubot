@@ -6,6 +6,10 @@ use Test::More 'no_plan';
 use Test::Differences;
 
 BEGIN {
+    if ( $ENV{HARNESS_ACTIVE} ) {
+        $ENV{WUBOT_SCHEMAS} = "config/schemas";
+    }
+
     $ENV{TZ} = "America/Los_Angeles";
 }
 

@@ -122,7 +122,16 @@ has 'schema_dir'   => ( is       => 'ro',
                         lazy     => 1,
                         default  => sub {
                             my $self = shift;
-                            my $schema_dir = join( "/", $ENV{HOME}, "wubot", "schemas" );
+                            my $schema_dir;
+                            if ( $ENV{WUBOT_SCHEMAS} ) {
+                                $schema_dir = $ENV{WUBOT_SCHEMAS};
+                            }
+                            else {
+                                $schema_dir = join( "/", $ENV{HOME}, "wubot", "schemas" );
+                            }
+                            unless ( -d $schema_dir ) {
+                                $self->logger->logdie( "schema directory does not exist: $schema_dir" );
+                            }
                             $self->logger->debug( "schema directory: $schema_dir" );
                             return $schema_dir;
                         },
@@ -636,7 +645,7 @@ sub get_prepared {
                     $self->add_column( $table, $column, $schema->{$column} );
                     next RETRY;
                 } else {
-                    $self->logger->logcroak( "Missing column not defined in schema: $column" );
+                    $self->logger->logcroak( "Missing column $column not defined in schema for $table" );
                 }
             } else {
                 $self->logger->logcroak( "Unhandled error: $error" );
