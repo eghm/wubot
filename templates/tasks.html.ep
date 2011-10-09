@@ -22,7 +22,7 @@
 <thead>
   <tr>
     <% for my $header ( @$headers ) { %>
-        <th><%= $header %></th>
+        <th class="<%= $header %>"><%= $header %></th>
     <% } %>
   </tr>
 </thead>

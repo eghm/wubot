@@ -64,6 +64,12 @@ th.key, th.username {
 th.subject {
   width: 60%;
 }
+th.priority {
+  width: 5%;
+}
+th.scheduled, th.deadline, th.lastupdate {
+  width: 12%;
+}
 
 pre {
 	font-size: 12px;
