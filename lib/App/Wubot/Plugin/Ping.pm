@@ -54,6 +54,7 @@ sub check {
 
     if ( $loss == $num_packets ) {
         $reaction->{subject} = "Unable to ping host: $config->{host}";
+        $reaction->{status}  = 'CRITICAL';
     }
 
     return { react => $reaction };
