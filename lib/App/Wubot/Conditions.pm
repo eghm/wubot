@@ -100,6 +100,10 @@ sub istrue {
 
     return unless $condition;
 
+    # clean any whitespace surrounding conditions
+    $condition =~ s|^\s+||;
+    $condition =~ s|\s+$||;
+
     # if we have previously parsed this condition, look up the parsed
     # results in the cache.
     if ( $self->{cache}->{ $condition } ) {
@@ -110,7 +114,19 @@ sub istrue {
     my $parsed;
 
     # try to parse the rule
-    if ( $condition =~ m|^(.*)\s+AND\s+(.*)$| ) {
+    if ( $condition =~ s{\(([^\(\)]+)\)}{ my $expr = $1;
+
+                                          if ( $self->istrue( $expr, $message ) ) {
+                                              'TRUE';
+                                          } else {
+                                              'FALSE';
+                                          }
+                                      }e ) {
+
+        return $self->istrue( $condition, $message );
+
+    }
+    elsif ( $condition =~ m|^(.*)\s+AND\s+(.*)$| ) {
         my ( $first, $last ) = ( $1, $2 );
 
         return 1 if $self->istrue( $first, $message ) && $self->istrue( $last, $message );
@@ -121,6 +137,12 @@ sub istrue {
 
         return 1 if $self->istrue( $first, $message ) || $self->istrue( $last, $message );
         return;
+    }
+    elsif ( $condition =~ m/^\s*TRUE\s*$/ ) {
+        $parsed = sub { return 1 };
+    }
+    elsif ( $condition =~ m/^\s*FALSE\s*$/ ) {
+        $parsed = sub { return };
     }
     elsif ( $condition =~ m|^NOT\s+(.*)$| ) {
         return if $self->istrue( $1, $message );
@@ -200,7 +222,8 @@ sub istrue {
                          my $first;
                          if ( looks_like_number( $left ) ) {
                              $first = $left;
-                         } else {
+                         }
+                         else {
                              return unless exists $msg->{$left};
                              $first = $msg->{$left};
                              return unless looks_like_number( $first )
@@ -209,7 +232,8 @@ sub istrue {
                          my $second;
                          if ( looks_like_number( $right ) ) {
                              $second = $right;
-                         } else {
+                         }
+                         else {
                              return unless exists $msg->{$right};
                              $second = $msg->{$right};
                              return unless looks_like_number( $second )
@@ -217,11 +241,14 @@ sub istrue {
 
                          if ( $op eq ">" ) {
                              return 1 if $first > $second;
-                         } elsif ( $op eq ">=" ) {
+                         }
+                         elsif ( $op eq ">=" ) {
                              return 1 if $first >= $second;
-                         } elsif ( $op eq "<" ) {
+                         }
+                         elsif ( $op eq "<" ) {
                              return 1 if $first < $second;
-                         } elsif ( $op eq "<=" ) {
+                         }
+                         elsif ( $op eq "<=" ) {
                              return 1 if $first <= $second;
                          }
 
@@ -249,22 +276,20 @@ __END__
 
 =back
 
-=head1 LIMITATIONS
+=head1 PARENTHESES
 
-Unfortunately you can not (yet) use parens within conditions.
-Conditions are evaluated from left to right in order, e.g.
+You can now use parentheses within conditions.  For example:
 
-  - x is true AND y is true OR z is true
-    - evaluates as: x is true AND ( y is true OR z is true )
+  condition: ( x is false AND y is true ) OR z is true
 
-The main mechanism for nesting conditions is to use rule trees.  Child
+Another mechanism for nesting conditions is to use rule trees.  Child
 rules are only evaluated if the parent rule matches, so parent and
-child rules are logically combined by AND.  For example, set the field
-'foo' to the value '1' based on the following logic:
+child rules are logically combined by AND.  For example, the following
+condition:
 
-  ( x is true OR y is true ) AND ( a is true OR b is true )
+  condition: ( x is true OR y is true ) AND ( a is true OR b is true )
 
-You could create the following rule tree:
+is the equivalent of:
 
   rules:
     - name: check x and y
@@ -272,7 +297,3 @@ You could create the following rule tree:
       rules:
         - name: check a and b
           condition: a is true OR b is true
-          plugin: SetField
-          config:
-            field: foo
-            value: 1

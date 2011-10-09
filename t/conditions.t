@@ -337,6 +337,47 @@ test 'less than or equal to, and greater than or equal to' => sub {
 
 };
 
+test 'conditions with parens' => sub {
+    my ($self) = @_;
+
+    $self->reset_reactor;
+
+    ok( $self->reactor->istrue( "( hostname equals navi OR hostname equals foo ) AND hostname equals navi", { hostname => 'navi' } ),
+        "Checking ( true OR false ) AND true"
+    );
+
+    ok( $self->reactor->istrue( "hostname equals navi OR ( hostname equals foo AND hostname equals navi )", { hostname => 'navi' } ),
+        "Checking true OR ( false AND true )"
+    );
+
+    ok( $self->reactor->istrue( "hostname equals navi OR ( hostname equals foo AND hostname equals navi )", { hostname => 'navi' } ),
+        "Checking true OR ( false AND true )"
+    );
+
+    ok( $self->reactor->istrue( "hostname equals foo OR ( hostname equals navi AND hostname equals navi )", { hostname => 'navi' } ),
+        "Checking false OR ( true AND true )"
+    );
+
+    ok( ! $self->reactor->istrue( "hostname equals foo OR ( hostname equals navi AND hostname equals foo )", { hostname => 'navi' } ),
+        "Checking false OR ( true AND false )"
+    );
+
+    ok( $self->reactor->istrue( "( hostname equals navi OR hostname equals foo ) AND ( hostname equals foo OR hostname equals navi )", { hostname => 'navi' } ),
+        "Checking ( true OR false ) AND ( false OR true )"
+    );
+
+    ok( $self->reactor->istrue( "( ( hostname equals foo OR hostname equals bar ) OR hostname equals navi ) AND hostname equals navi", { hostname => 'navi' } ),
+        "Checking ( ( FALSE OR FALSE ) OR TRUE ) AND TRUE"
+    );
+
+    ok( $self->reactor->istrue( "( hostname equals foo OR ( hostname equals bar OR hostname equals navi ) ) AND hostname equals navi", { hostname => 'navi' } ),
+        "Checking ( FALSE OR ( FALSE OR TRUE ) ) AND TRUE"
+    );
+
+    ok( $self->reactor->istrue( "( abc equals xyz AND hostname equals navi ) OR hostname equals navi", { hostname => 'navi' } ),
+        "Checking '( false AND true ) OR true' is true"
+    );
+};
 
 run_me;
 done_testing;
