@@ -108,8 +108,8 @@ sub check {
             $self->logger->logdie( "ERROR: now show information retrieved from the tivo" );
         }
 
-        $self->reactor( { subject => "Retrieved information for $show_count shows in $folder_count folders",
-                      } );
+        $self->reactor->( { subject => "Retrieved information for $show_count shows in $folder_count folders",
+                        } );
 
         # write out the updated cache
         $self->write_cache( $cache );
