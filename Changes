@@ -1,5 +1,19 @@
 Revision history for Wubot
 
+0.3.8 2011-10-13T13:46PDT
+
+  - support parentheses in conditions
+  - add a Status reactor to track the status of plugin instances
+    - add 'WARNING' status to many monitor plugins
+  - multiple fixes to test cases
+    - when running 'make test', schemas are read from dist rather than ~/wubot/schemas
+    - OS X specific plugins no longer fail on other operating systems
+    - fix dependency list in UrlLengthen reactor test case
+  - tivo plugin reports total count of shows and folders
+  - EmacsOrgMode plugin test case bug fix
+  - replace 'eval "require $class"' with Class::Load
+  - multiple doc updates
+
 0.3.7 2011-10-10T10:41PDT
 
   - replace YAML with YAML::XS
