@@ -109,7 +109,7 @@ sub check {
         }
 
         $self->reactor->( { subject => "Retrieved information for $show_count shows in $folder_count folders",
-                        } );
+                        }, $config );
 
         # write out the updated cache
         $self->write_cache( $cache );
