@@ -283,9 +283,9 @@ You can now use parentheses within conditions.  For example:
   condition: ( x is false AND y is true ) OR z is true
 
 Note that you must always have at least one space after the opening
-paren, and at least one space before the close paren.  You will also
-need a space in-between a paren and the AND or OR that preceeds or
-follows it.
+parenthesis, and at least one space before the close parenthesis.  You
+will also need a space in-between a parentheses and the AND or OR that
+precedes or follows it.
 
 Another mechanism for nesting conditions is to use rule trees.  Child
 rules are only evaluated if the parent rule matches, so parent and
