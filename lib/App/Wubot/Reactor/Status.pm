@@ -95,7 +95,7 @@ sub react {
          && $message->{status} ne "OK"
      ) {
 
-        if ( $self->is_fibonacci( $message->{status_count} ) ) {
+        if ( $self->_is_fibonacci( $message->{status_count} ) ) {
             $message->{subject} = join( " ", $message->{subject}, "[$message->{status_count}x $message->{status}]" );
         }
         else {
@@ -117,7 +117,7 @@ sub react {
     return $message;
 }
 
-sub is_fibonacci {
+sub _is_fibonacci {
     my ( $self, $number ) = @_;
 
     # return 1 if $number == 0;
@@ -150,6 +150,32 @@ App::Wubot::Reactor::Status - keep track of check statuses
   - name: track status
     plugin: Status
 
+
+=head1 DESCRIPTION
+
+Monitors the 'status' field of messages, and keeps track of how long
+plugin instances have been in a WARNING or CRITICAL state.
+
+If a plugin instance is consistently reporting a problem state,
+subject fields will get suppressed.  The Fibonacci sequence is used
+for suppression, so notifications are only sent on the 1st, 2nd, 3rd,
+5th, 8th, 13th, etc. messages.  On messages where the subject is
+suppressed, the subject field will be renamed to status_subject.
+
+When the status is in a problem state, the notification subjects will
+also be updated to include the plugin status, and the number of
+notifications that have been sent with the notification in that state.
+For example:
+
+  CRITICAL: No content retrieved! [21x CRITICAL]
+
+The message color will also be updated to correspond to the status, i.e.:
+
+  CRITICAL: red
+  WARNING: yellow
+  UNKNOWN: orange
+
+This reactor plugin is brand new in 0.3.8.  More updates will follow.
 
 =head1 SUBROUTINES/METHODS
 

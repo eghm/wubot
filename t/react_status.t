@@ -215,19 +215,19 @@ test "repeated critical notification suppression" => sub {
 };
 
 
-test "is_fibonacci" => sub {
+test "_is_fibonacci" => sub {
     my ($self) = @_;
 
     $self->reset_fixture;
 
     for my $number ( 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144 ) {
-        ok( $self->fixture->is_fibonacci( $number ),
+        ok( $self->fixture->_is_fibonacci( $number ),
             "Checking that $number is a fibonacci number"
         );
     }
 
     for my $number ( 4, 6, 7, 9, 10, 11, 12, 14 ) {
-        ok( ! $self->fixture->is_fibonacci( $number ),
+        ok( ! $self->fixture->_is_fibonacci( $number ),
             "Checking that $number is not a fibonacci number"
         );
     }
