@@ -48,7 +48,7 @@ sub check {
     $self->logger->debug( "load: $load01 => $load05 => $load15" );
 
     my $subject;
-    my $status = "ok";
+    my $status = 'OK';
     if ( $inputs->{config}->{critical_load} && $load01 > $inputs->{config}->{critical_load} ) {
         $subject = "critical: load over last 1 minute is $load01 ";
         $status = 'CRITICAL';
