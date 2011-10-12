@@ -152,16 +152,16 @@ test "repeated critical notification suppression" => sub {
 
     $self->reset_fixture;
 
-    my $now = time;
+    my $start = time;
 
-    is_deeply( $self->fixture->react( { key => 'abc', subject => 'foo', status => 'CRITICAL', lastupdate => $now },
+    is_deeply( $self->fixture->react( { key => 'abc', subject => 'foo', status => 'CRITICAL', lastupdate => $start },
                                       {}
                                   ),
                { key          => 'abc',
                  subject      => 'foo',
                  status       => 'CRITICAL',
-                 lastupdate   => $now,
-                 status_since => $now,
+                 lastupdate   => $start,
+                 status_since => $start,
                  status_count => 1,
                  color        => 'red',
              },
@@ -177,36 +177,40 @@ test "repeated critical notification suppression" => sub {
                { key            => 'abc',
                  subject        => 'foo [2x CRITICAL]',
                  status         => 'CRITICAL',
-                 lastupdate     => time,
-                 status_since   => $now,
+                 lastupdate     => $second,
+                 status_since   => $start,
                  status_count   => 2,
                  color          => 'red',
              },
                "Running Status reactor on 2nd message with status CRITICAL"
            );
 
-    is_deeply( $self->fixture->react( { key => 'abc', subject => 'foo', status => 'CRITICAL', lastupdate => $second },
+    sleep 1;
+    my $third = time;
+    is_deeply( $self->fixture->react( { key => 'abc', subject => 'foo', status => 'CRITICAL', lastupdate => $third },
                                       {}
                                   ),
                { key            => 'abc',
                  subject        => 'foo [3x CRITICAL]',
                  status         => 'CRITICAL',
-                 lastupdate     => time,
-                 status_since   => $now,
+                 lastupdate     => $third,
+                 status_since   => $start,
                  status_count   => 3,
                  color          => 'red',
              },
                "Running Status reactor on 3rd message with status CRITICAL"
            );
 
-    is_deeply( $self->fixture->react( { key => 'abc', subject => 'foo', status => 'CRITICAL', lastupdate => $second },
+    sleep 1;
+    my $fourth = time;
+    is_deeply( $self->fixture->react( { key => 'abc', subject => 'foo', status => 'CRITICAL', lastupdate => $fourth },
                                       {}
                                   ),
                { key            => 'abc',
                  status_subject => 'foo',
                  status         => 'CRITICAL',
-                 lastupdate     => time,
-                 status_since   => $now,
+                 lastupdate     => $fourth,
+                 status_since   => $start,
                  status_count   => 4,
                  color          => 'red',
              },
