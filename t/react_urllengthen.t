@@ -13,7 +13,7 @@ for my $lib ( 'App::Wubot::Logger',
           ) {
 
     eval "use $lib";
-    plan skip_all => "Failed to load $lib for this test case: $@" if $@;
+    plan skip_all => "Failed to load $lib for this test case" if $@;
 }
 
 my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
