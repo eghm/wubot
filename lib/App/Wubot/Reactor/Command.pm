@@ -220,15 +220,19 @@ sub monitor {
                 $subject .= " => $message->{command_name}";
             }
             $message->{subject} = $subject;
+            delete $message->{subject_text};
+            $message->{status}  = 'CRITICAL';
             $self->logger->error( $subject );
             $self->logger->error( $output );
         }
         else {
             my $subject = "Command succeeded: $id";
+            $message->{status}  = 'OK';
             if ( $message->{command_name} ) {
                 $subject .= " => $message->{command_name}";
             }
             $message->{subject} = $subject;
+            delete $message->{subject_text};
             if ( $message->{command_noresults} ) {
                 $self->logger->debug( $subject );
             }

@@ -33,7 +33,7 @@ $queuedb .= "/commands.sql";
     my $pwd = `pwd`;
     chomp $pwd;
 
-    eq_or_diff( $command->react( { abc => 'xyz' }, { command => 'pwd' } ),
+    is_deeply( $command->react( { abc => 'xyz' }, { command => 'pwd' } ),
                { command_output => $pwd, command_signal => 0, command_status => 0, abc => 'xyz' },
                "Checking react() run with a configured command"
            );
@@ -56,7 +56,7 @@ $queuedb .= "/commands.sql";
         "Creating new command reactor object"
     );
 
-    eq_or_diff( $command->react( { abc => 'xyz' }, { command => 'false' } ),
+    is_deeply( $command->react( { abc => 'xyz' }, { command => 'false' } ),
                { command_output => '', command_signal => 0, command_status => 1, abc => 'xyz' },
                "Checking react() run with a command that fails"
            );
@@ -128,14 +128,15 @@ $queuedb .= "/commands.sql";
 
     delete $results_h->{lastupdate};
 
-    eq_or_diff_data( \$results_h,
-                     \{ command_output => 'finished',
-                        command_signal => 0,
-                        command_queue  => 'forker',
-                        command_status => 0,
-                        foo            => 'abc',
-                        subject        => "Command succeeded: $id",
-                    },
+    is_deeply( \$results_h,
+               \{ command_output => 'finished',
+               command_signal    => 0,
+               command_queue     => 'forker',
+               command_status    => 0,
+               foo               => 'abc',
+               subject           => "Command succeeded: $id",
+               status            => 'OK',
+           },
                      "Checking background command results"
                  );
 
@@ -182,21 +183,23 @@ $queuedb .= "/commands.sql";
     delete $results3_h->[0]->{lastupdate};
     delete $results3_h->[1]->{lastupdate};
 
-    eq_or_diff( \$results3_h,
+    is_deeply( \$results3_h,
                 \[
                    { command_output => 'finished1',
-                     command_queue => 'separate.1',
+                     command_queue  => 'separate.1',
                      command_signal => 0,
                      command_status => 0,
                      foo            => 'abc',
                      subject        => "Command succeeded: $id.1",
+                     status         => 'OK',
                  },
                    { command_output => 'finished2',
-                     command_queue => 'separate.2',
+                     command_queue  => 'separate.2',
                      command_signal => 0,
                      command_status => 0,
                      foo            => 'def',
                      subject        => "Command succeeded: $id.2",
+                     status         => 'OK',
                  },
                ],
                "Checking background command results"
