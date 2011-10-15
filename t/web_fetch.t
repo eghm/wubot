@@ -25,8 +25,8 @@ ok( my $check = App::Wubot::Plugin::WebFetch->new( { class      => 'App::Wubot::
     );
 
     like( $results->{react}->{content},
-          qr/Feeling Lucky/,
-          "Checking that content contains 'Feeling Lucky'"
+          qr/\<title\>Google\<\/title\>/,
+          "Checking that content contains google title"
          );
 
 }
@@ -42,8 +42,8 @@ ok( my $check = App::Wubot::Plugin::WebFetch->new( { class      => 'App::Wubot::
     );
 
     like( $results->{react}->{foo},
-          qr/Feeling Lucky/,
-          "Checking that 'foo' field contains 'Feeling Lucky'"
+          qr/\<title\>Google\<\/title\>/,
+          "Checking that 'foo' field contains google title"
          );
 
 }
