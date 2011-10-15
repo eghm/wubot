@@ -1,5 +1,13 @@
 Revision history for Wubot
 
+0.3.10 2011-10-12T12:37PDT
+
+  - fixes for some test cases
+    - Command reactor sorts entries in command log directory
+    - WebFetch monitor expected text from google search page
+
+  - IRC reactor does not attempt to send data when disconnected
+
 0.3.9 2011-10-19T19:57PDT
 
   - add 'status' field to the command reactor, tweak some test cases
