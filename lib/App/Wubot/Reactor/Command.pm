@@ -135,15 +135,20 @@ sub monitor {
 
     my $directory = $self->logdir;
 
+    my @entries;
+
     my $dir_h;
     opendir( $dir_h, $directory ) or $self->logger->logdie( "Can't opendir $directory: $!" );
-
   FILE:
     while ( defined( my $entry = readdir( $dir_h ) ) ) {
         next unless $entry;
         next if -d $entry;
-
         next unless $entry =~ m|\.log$|;
+        push @entries, $entry;
+    }
+    closedir( $dir_h );
+
+    for my $entry ( sort @entries ) {
         $self->logger->debug( "Command: found running entry: $entry" );
 
         my $id = $entry;
@@ -254,8 +259,6 @@ sub monitor {
         $self->logger->debug( "Unlinking logfile: $logfile" );
         unlink( $logfile );
     }
-
-    closedir( $dir_h );
 
     $self->logger->debug( "Searching for processes in queue to be started" );
 
