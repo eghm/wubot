@@ -51,6 +51,8 @@ sub check {
 
         my $folder_count;
         my $show_count;
+        my $total_size;
+        my $new_size;
 
       FOLDER:
         for my $folder ($tivo->folders()) {
@@ -67,18 +69,22 @@ sub check {
 
                 $show_count++;
 
+                # size in MB
+                my $size     = int( $show->size() / 1000000 );
+                $total_size += $size;
+
                 my $show_string = $show->as_string();
 
                 next SHOW if $cache->{shows}->{$show_string};
                 next SHOW if $show->in_progress();
+
+                $new_size += $size;
 
                 my $subject = join ": ", $show->name(), $show->episode();
 
                 # duration in minutes
                 my $duration = int( $show->duration() / 60000 );
 
-                # size in MB
-                my $size     = int( $show->size() / 1000000 );
 
                 $self->reactor->( { subject     => $subject,
                                     name        => $show->name(),
@@ -108,7 +114,10 @@ sub check {
             $self->logger->logdie( "ERROR: now show information retrieved from the tivo" );
         }
 
-        $self->reactor->( { subject => "Retrieved information for $show_count shows in $folder_count folders",
+        $self->reactor->( { subject => "Totals: shows=$show_count folders=$folder_count new=$new_size total=$total_size",
+                            shows   => $show_count,
+                            folders => $folder_count,
+                            size    => $total_size,
                         }, $config );
 
         # write out the updated cache
