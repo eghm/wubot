@@ -8,12 +8,17 @@ use File::Temp qw/ tempdir /;
 use App::Wubot::Logger;
 use App::Wubot::Plugin::Pulse;
 
+BEGIN {
+    $ENV{TZ} = "America/Los_Angeles";
+}
+
+
 {
     my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
 
     ok( my $check = App::Wubot::Plugin::Pulse->new( { class      => 'App::Wubot::Plugin::Pulse',
-                                                 cache_file => "$tempdir/Pulse.cache.yaml",
-                                                 key        => 'Pulse-navi',
+                                                      cache_file => "$tempdir/Pulse.cache.yaml",
+                                                      key        => 'Pulse-navi',
                                              } ),
         "Creating a new Pulse check instance"
     );
