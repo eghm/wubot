@@ -1,5 +1,18 @@
 Revision history for Wubot
 
+0.3.9 2011-10-19T19:57PDT
+
+  - add 'status' field to the command reactor, tweak some test cases
+  - force timezone for pulse test cases
+  - Uptime monitor sets status to 'OK' rather than 'ok' for state reactor
+  - tweaks to State reactor and test case
+  - UrlLengthen reactor gives a more terse message on failure to load library
+  - status reactor test case fix
+  - tivo monitor tweaks
+    - fix bug where tivo monitor rules not run on new show/folder count message
+    - reports total disk space used and total size of new recordings
+
+
 0.3.8 2011-10-13T13:46PDT
 
   - support parentheses in conditions
