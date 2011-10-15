@@ -9,21 +9,26 @@ use POSIX qw(strftime);
 
 use App::Wubot::Logger;
 
-has 'logger'  => ( is => 'ro',
-                   isa => 'Log::Log4perl::Logger',
-                   lazy => 1,
-                   default => sub {
-                       return Log::Log4perl::get_logger( __PACKAGE__ );
-                   },
-               );
+has 'logger'      => ( is => 'ro',
+                       isa => 'Log::Log4perl::Logger',
+                       lazy => 1,
+                       default => sub {
+                           return Log::Log4perl::get_logger( __PACKAGE__ );
+                       },
+                   );
 
-has 'con'  => ( is      => 'rw',
-                isa     => 'AnyEvent::IRC::Client',
-                lazy    => 1,
-                default => sub { return AnyEvent::IRC::Client->new() },
-            );
+has 'con'         => ( is      => 'rw',
+                       isa     => 'AnyEvent::IRC::Client',
+                       lazy    => 1,
+                       default => sub { return AnyEvent::IRC::Client->new() },
+                   );
 
 has 'initialized' => ( is      => 'rw',
+                       isa     => 'Bool',
+                       default => 0,
+                   );
+
+has 'connected'   => ( is      => 'rw',
                        isa     => 'Bool',
                        default => 0,
                    );
@@ -63,6 +68,9 @@ sub react {
         $self->_init( $config );
     }
 
+    # code_smell: queue messages and send when connected
+    return $message unless $self->connected;
+
     my $subject = $message->{subject_text} || $message->{subject};
 
     my $date = strftime( "%d.%H:%M", localtime( $message->{lastupdate} ) );
@@ -89,12 +97,24 @@ sub _init {
     my ( $self, $config ) = @_;
 
     $self->con->reg_cb( registered  => sub { $self->logger->info( "reactor connected to IRC: $config->{server}:$config->{port}" );
+                                             $self->logger->info( "joining: $config->{channel}" );
                                              $self->con->send_srv("JOIN", $config->{channel} );
+                                             $self->connected( 1 );
+                                             $self->con->enable_ping( 60,
+                                                                      sub {
+                                                                          $self->logger->error( "ping: no response received" );
+                                                                          $self->con->disconnect;
+                                                                          $self->con( AnyEvent::IRC::Client->new() );
+                                                                          $self->initialized( 0 );
+                                                                          $self->connected( 0 );
+
+                                                                      } );
                                          }
                     );
 
     $self->con->reg_cb( disconnect  => sub { $self->logger->info( "disconnected" );
-                                             #$self->initialized( undef );
+                                             $self->initialized( undef );
+                                             $self->connected( 0 );
                                          }
                     );
 
