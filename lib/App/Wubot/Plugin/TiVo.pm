@@ -114,11 +114,20 @@ sub check {
             $self->logger->logdie( "ERROR: now show information retrieved from the tivo" );
         }
 
-        $self->reactor->( { subject => "Totals: shows=$show_count folders=$folder_count new=$new_size total=$total_size",
-                            shows   => $show_count,
-                            folders => $folder_count,
-                            size    => $total_size,
-                        }, $config );
+        my $message = { subject  => "Totals: shows=$show_count folders=$folder_count new=$new_size total=$total_size",
+                        shows    => $show_count,
+                        folders  => $folder_count,
+                        size     => $total_size,
+                        new_size => $new_size,
+                    };
+
+        if ( $config->{hd} ) {
+            my $percent = int( $total_size / $config->{hd} ) / 10;
+            $message->{percent} = $percent;
+            $message->{subject} .= " $percent%";
+        }
+
+        $self->reactor->( $message, $config );
 
         # write out the updated cache
         $self->write_cache( $cache );
@@ -151,7 +160,7 @@ App::Wubot::Plugin::TiVo - monitor a tivo for new recordings
   delay: 8h
   host: 192.168.1.123
   key: 0123456789
-
+  hd: 600
 
 =head1 DESCRIPTION
 
@@ -175,6 +184,22 @@ sent containing the following fields:
   link: link to download program from tivo
 
 For more information on these fields, see L<Net::TiVo>.
+
+In addition to a message being sent for each recorded item, a message
+will be sent containing information about the totals:
+
+  subject: Totals: shows=$show_count folders=$folder_count new=$new_size total=$new_size
+  shows: number of recorded items
+  folders: number of folders
+  size: total megabytes used
+  new_size: size of new found programs
+  percent: percentage of drive utilized
+
+The 'percent' field will only show up if you have the hard drive size
+in your configuration (the 'hd' param).  If that is the case, then the
+percent utilized will also show up in the title.
+
+
 
 
 =head1 SQLITE
