@@ -1,0 +1,172 @@
+#!/usr/local/bin/perl -w
+use strict;
+use warnings;
+
+use FindBin;
+use HTML::Strip;
+use YAML;
+
+use lib "$FindBin::Bin/../lib";
+
+use App::Wubot::Logger;
+my $logger = Log::Log4perl::get_logger( 'default' );
+
+use App::Wubot::SQLite;
+use App::Wubot::Util::Notifications;
+use App::Wubot::Util::WordFrequency;
+
+my $util = App::Wubot::Util::WordFrequency->new();
+
+my $notify = App::Wubot::Util::Notifications->new();
+
+my $notify_file    = join( "/", $ENV{HOME}, "wubot", "sqlite", "notify.sql" );
+my $sqlite_notify  = App::Wubot::SQLite->new( { file => $notify_file } );
+
+if ( grep /-index/, @ARGV ) {
+    reindex();
+}
+else {
+    get_suggested_tags();
+}
+
+sub get_suggested_tags {
+    my $id = $ARGV[0];
+
+    print "\n\n";
+    print $notify->get_item_by_id( $id )->{subject};
+    print "\n\n";
+
+    my $words = $util->fetch_words_from_key( $id );
+    #print YAML::Dump $words;
+
+    my $recs = $util->get_tag_suggestions( $words );
+
+    print "\n\n";
+
+    my $limit = 5;
+    for my $tag ( sort { $recs->{$b} <=> $recs->{$a} } keys %{ $recs } ) {
+        last unless $limit;
+        $limit--;
+
+        print "$tag: $recs->{$tag}\n";
+
+    }
+}
+
+
+sub reindex {
+    my $hs = HTML::Strip->new();
+
+    my %ids;
+
+    $sqlite_notify->select( { tablename => 'tags',
+                              fieldname => 'remoteid',
+                              where     => { tag => { '!=' => 'readme' } },
+                              callback => sub {
+                                  my $row = shift;
+                                  $ids{ $row->{remoteid} } = 1;
+                              },
+                          } );
+
+    my $total = scalar keys %ids;
+
+    print "Got ids: $total\n";
+
+    my $count = 0;
+    for my $id ( sort keys %ids ) {
+
+        $count++;
+
+        my @tags;
+        $sqlite_notify->select( { tablename => 'tags',
+                                  fieldname => 'tag',
+                                  where     => { remoteid => $id, tag => { '!=' => 'readme' } },
+                                  callback => sub {
+                                      my $row = shift;
+                                      push @tags, $row->{tag};
+                                  },
+                              } );
+
+
+        $sqlite_notify->select( { tablename => 'notifications',
+                                  where     => { id => $id },
+                                  callback  => sub {
+                                      my $row = shift;
+
+                                      my $subject = $row->{subject};
+
+                                      $subject = $hs->parse( $subject );
+
+                                      my $body = $row->{body};
+                                      if ( $body ) {
+                                          $body = $hs->parse( $row->{body} );
+                                      }
+
+                                      my $words = $util->count_words( $subject, $body );
+
+                                      my $wordcount = scalar keys %{ $words };
+
+                                      $logger->info( "[$count/$total]: $row->{id} = $wordcount: $subject" );
+                                      $logger->info( "   ", join( ", ", @tags ) );
+
+                                      $util->store( $row->{id}, $words, @tags );
+
+                                  },
+                              } );
+
+    }
+
+    # get keys in wordfreq table, delete any that no longer have tags applied
+
+}
+
+
+
+
+
+
+
+
+
+
+
+#############################################################################
+
+sub get_related {
+    my $id = $ARGV[0];
+
+    print "\n\n";
+    print $notify->get_item_by_id( $id )->{subject};
+    print "\n\n";
+
+    my $words = $util->fetch_words_from_key( $id );
+
+    my $docs = $util->get_similar( $words );
+
+    my $tags_h;
+
+    my @sorted = sort { $docs->{$b} <=> $docs->{$a} } keys %{ $docs };
+
+    for my $id ( @sorted  ) {
+        my $entry = $notify->get_item_by_id( $id );
+
+        my @tags = $notify->get_item_tags( $id );
+
+        for my $tag ( @tags ) {
+            $tags_h->{$tag}++;
+        }
+
+        #print "$id: $docs->{$id}: $tags: $entry->{subject}\n";
+    }
+
+    my @sorted_tags = sort { $tags_h->{$b} <=> $tags_h->{$a} } keys %{ $tags_h };
+
+    my $limit = 5;
+    for my $tag ( @sorted_tags ) {
+        last unless $limit;
+        $limit--;
+        print "[ $tag: $tags_h->{$tag} ] ";
+    }
+
+    print "\n";
+}
