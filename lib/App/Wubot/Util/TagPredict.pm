@@ -176,7 +176,7 @@ sub remove {
 }
 
 sub predict_tags {
-    my ( $self, $words ) = @_;
+    my ( $self, $words, $options ) = @_;
 
     my $unique_word_count = $self->db->{"unique_word_count:_TOTAL_"};
     my $count_total_doc   = $self->db->{"count_tag_doc:_TOTAL_"};
@@ -218,7 +218,21 @@ sub predict_tags {
         next unless $p_tag_top;
         my $result = $p_tag_top / ( $p_tag_top + $p_tag_bot );
 
+        if ( $options->{min} ) {
+            next unless $result > $options->{min};
+        }
+
         $return->{ $tag } = sprintf( "%0.5f", $result );
+    }
+
+    if ( $options->{limit} ) {
+
+        my $count = 0;
+        for my $tag ( sort { $return->{$b} <=> $return->{$a} } keys %{ $return } ) {
+            $count++;
+            next unless $count > $options->{limit};
+            delete $return->{ $tag };
+        }
     }
 
     return $return;

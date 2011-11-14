@@ -40,16 +40,12 @@ sub get_suggested_tags {
 
     my $words = $predict->count_words( $item->{subject}, $item->{body} );
 
-    my $recs = $predict->predict_tags( $words );
+    my $recs = $predict->predict_tags( $words, { min => .0005 } );
 
     print "\n\n";
 
-    my $limit = 5;
     for my $tag ( sort { $recs->{$b} <=> $recs->{$a} } keys %{ $recs } ) {
-        last unless $limit;
-        $limit--;
-
-        print "$tag: $recs->{$tag}\n";
+        printf( "%10s  %0.3f\n", $tag, $recs->{$tag} );
 
     }
 }

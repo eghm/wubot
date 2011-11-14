@@ -7,14 +7,15 @@ use warnings;
 use Mojo::Base 'Mojolicious::Controller';
 
 use HTML::Strip;
-use  Lingua::Translate;
+use Lingua::Translate;
 use Log::Log4perl;
 use Text::Wrap;
 use URI::Find;
 
-use App::Wubot::Util::Colors;
 use App::Wubot::Logger;
 use App::Wubot::SQLite;
+use App::Wubot::Util::Colors;
+use App::Wubot::Util::TagPredict;
 use App::Wubot::Util::TimeLength;
 
 =head1 NAME
@@ -145,6 +146,8 @@ Lots more to come here!
 my $logger = Log::Log4perl::get_logger( __PACKAGE__ );
 
 my $colors = App::Wubot::Util::Colors->new();
+
+my $predict = App::Wubot::Util::TagPredict->new();
 
 my $is_null = "IS NULL";
 my $is_not_null = "IS NOT NULL";
@@ -460,6 +463,10 @@ sub item {
                                              },
                           } );
     $self->stash( tags => \@tags );
+
+    my $words = $predict->count_words( $item->{subject_text}, $item->{body} );
+    my $recs = $predict->predict_tags( $words, { min => .01, limit => 5 } );
+    $self->stash( predict_tags => $recs );
 
     $self->render( template => 'item' );
 }

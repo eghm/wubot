@@ -97,6 +97,15 @@
           </td>
         </tr>
       
+        <tr>
+          <td>predicted tags</td>
+          <td>
+            <% for my $tag ( sort { $predict_tags->{$b} <=> $predict_tags->{$a} } keys %$predict_tags ) { %>
+            <a href='/notify?tag=<%= $tag %>'><%= $tag %> - <%= sprintf( "%0.1f", $predict_tags->{$tag} * 100 ) %>%</a><br>
+            <% } %>
+          </td>
+        </tr>
+
       </table>
 
       <input type="image" src="/images/wubot.png" border=0 height=32 width=32 alt="submit">
