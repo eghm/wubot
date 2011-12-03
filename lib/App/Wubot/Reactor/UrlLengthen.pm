@@ -221,6 +221,7 @@ sub expand_pltme {
     my ( $self, $url ) = @_;
 
     $self->logger->debug( "Getting content of pltme url: $url" );
+
     my $response = $self->ua->get( $url );
 
     my $content = $response->decoded_content;
@@ -250,11 +251,12 @@ sub expand_plusist {
     my ( $self, $url ) = @_;
 
     $self->logger->debug( "Expanding plusist url: $url" );
+
     my $response = $self->ua->get( $url );
 
     my $content = $response->decoded_content;
 
-    return $url unless $content =~ m|iframe id=\"link.frame\" src=\"(.*?)\"|;
+    return $url unless $content =~ m|window.location\s+\=\s+\"(.*?)\"|;
 
     $url = $1;
     $self->logger->debug( "Expanded url: $url" );
