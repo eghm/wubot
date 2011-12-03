@@ -83,12 +83,21 @@ sub check {
 
         my $body = $i->content->body;
 
+        my $lastupdate = $i->modified || $i->issued;
+        if ( $lastupdate ) {
+            $lastupdate = $lastupdate->epoch;
+        }
+        else {
+            $lastupdate = time;
+        }
+
         my $article = { title      => $subject,
                         subject    => $subject,
                         link       => $link,
                         body       => $body,
                         coalesce   => $self->key,
                         username   => $i->author,
+                        lastupdate => $lastupdate,
                     };
 
         push @react, $article;
