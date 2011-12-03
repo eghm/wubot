@@ -108,6 +108,7 @@ sub check {
                              if ( $h && $p ) { $details = "($h:$p)" };
                              $self->logger->error( "XMPP: disconnect $details: $reas" );
                              $self->reactor->( { subject   => "XMPP: disconnect $details: $reas",
+                                                 status    => "CRITICAL",
                                                  noforward => 1 }, $config );
                              delete $self->{cl};
                              delete $self->{session_ready};
@@ -117,6 +118,8 @@ sub check {
                              $self->logger->error( "XMPP: ERROR: " . $err->string );
                              $self->reactor->( { subject  => "XMPP: ERROR: " . $err->string,
                                                  coalesce => 'XMPP',
+                                                 status   => "CRITICAL",
+
                                              }, $config );
                          },
                          message => sub {
