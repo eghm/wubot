@@ -1,0 +1,79 @@
+% use POSIX qw(strftime);
+<html>
+  <head>
+    <title>Taskbot</title>
+    <meta http-equiv="refresh" content="<%= 180 + int(rand(60)) %>">
+    <script type='text/javascript' src='/sort/common.js'></script>
+    <script type='text/javascript' src='/sort/css.js'></script>
+    <script type='text/javascript' src='/sort/standardista-table-sorting.js'></script>
+    <%= include 'css' %>
+  </head>
+<body bgcolor="#073642">
+
+  <%= include 'nav' %>
+
+    <font size="-1" color="#FF00FF">
+      |
+      <a href="?deadline=any&scheduled=any">all</a>
+      |
+      <a href="?deadline=false&scheduled=false">no date</a>
+      |
+      <a href="?deadline=true&scheduled=any">deadline</a>
+      |
+      <a href="?deadline=past&schedule=any">past deadline</a>
+      |
+      <a href="?scheduled=true&deadline=any">scheduled</a>
+      |
+      <a href="?scheduled=past&deadline=any">past schedule</a>
+      |
+      <% if ( $category ) { %>
+        <a href="?category="><%= $category %></a>
+      |
+      <% } %>
+      <a href="?status=todo">todo</a>
+      |
+      <a href="?status=done">done</a>
+      |
+    </font>
+  
+
+<table width='100%' class='sortable'>
+<thead>
+  <tr>
+    <% for my $header ( @$headers ) { %>
+        <th class="<%= $header %>"><%= $header %></th>
+    <% } %>
+  </tr>
+</thead>
+
+<tbody>
+
+  <% for my $item ( @{ $body_data } ) { %>
+    <tr bgcolor="<%= $item->{color} %>">
+
+      <td width='8%'><a href='/taskbot/item/<%= $item->{taskid} %>'><%= $item->{taskid} %></a></td>
+      <td width='8%' bgcolor="<%= $item->{lastupdate_color} %>"><%=  $item->{lastupdate} ? strftime( '%Y-%m-%d %H:%M', localtime( $item->{lastupdate} ) ) : ""  %></td>
+      <td width='8%'><% for my $cat ( split /\./, $item->{category} ) { %><a href="?category=<%= $cat %>"><%= $cat %></a><% } %></td>
+      <td width='5%'><a href="/taskbot/item/<%= $item->{taskid} %>?status=DONE&recurrence=<%= $item->{recurrence} %>&redir=list"><%= $item->{status} %></a></td>
+      <td width='3%'>
+        <%= $item->{priority} %>
+        <a href='/taskbot/item/<%= $item->{taskid} %>?priority=<%= $item->{priority} - 5 %>&redir=list'>-</a>
+        <a href='/taskbot/item/<%= $item->{taskid} %>?priority=<%= $item->{priority} + 5 %>&redir=list'>+</a></td>
+      <td width='1%'><a href='/taskbot/edit/<%= $item->{taskid} %>'>-&gt;</a></td>
+      <td><a href='/taskbot/item/<%= $item->{taskid} %>'><%= $item->{title} %></a></td>
+      <td width='3%'><%= $item->{duration} %></td>
+      <td width='8%' bgcolor="<%= $item->{scheduled_color} %>">
+        <%=  $item->{scheduled} ? strftime( '%Y-%m-%d %a %H:%M', localtime( $item->{scheduled} ) ) : ""  %>
+        <a href="/taskbot/item/<%= $item->{taskid} %>?scheduled=<%= $item->{scheduled} - 24*60*60 %>&redir=list">-</a>
+        <a href="/taskbot/item/<%= $item->{taskid} %>?scheduled=<%= $item->{scheduled} + 24*60*60 %>&redir=list">+</a>
+      </td>
+      <td width='8%' bgcolor="<%= $item->{deadline_color} %>"><%=  $item->{deadline} ? strftime( '%Y-%m-%d %a %H:%M', localtime( $item->{deadline} ) ) : ""  %></td>
+      <td width='1%'><%= $item->{recurrence} %></td>
+    </tr>
+    <% } %>
+
+</tbody>
+<tfoot></tfoot>
+</table>
+</body>
+</html>
