@@ -197,7 +197,7 @@ sub check_session {
 sub tasks {
     my ( $self ) = @_;
 
-    $self->stash( 'headers', [qw/taskid lastupdate category status priority edit title duration scheduled deadline rec/ ] );
+    $self->stash( 'headers', [qw/taskid lastupdate category status priority edit title duration scheduled rec/ ] );
 
     my $now = time;
     my $start = $now + 15*60;
