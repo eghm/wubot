@@ -90,7 +90,7 @@ my $test_cases = [
       target => 'http://www.updated3news.com/',
   },
     { source => "http://plusist.com/merlyn/NDMxNzk",
-      target => "http://itunes.apple.com/us/app/magnetic-billiards-blueprint/id432152950?mt=8",
+      target => "https://plus.google.com/105487854388646525021/posts/FyNdMbFgiFi",
   },
 ];
 
