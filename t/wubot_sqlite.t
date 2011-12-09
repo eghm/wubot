@@ -172,6 +172,26 @@ test "testing 'id' field on message is not inserted over autoincrementing id" =>
            );
 };
 
+test "testing 'id' field on message is inserted if id is not autoincrementing" => sub {
+    my ($self) = @_;
+
+    $self->reset_sqlite;
+    my $table = "test_table_13";
+    my $schema = { id      => 'INTEGER',
+                   column1 => 'INT',
+                   column2 => 'INT',
+               };
+
+    ok( $self->sqlite->insert( $table, { id => 5, column1 => 0, column2 => 1 }, $schema ),
+        "Inserting data hash into table with an 'id' that should be ignored"
+    );
+
+    is_deeply( [ $self->sqlite->query( "SELECT * FROM $table" ) ],
+               [ { id => 5, column1 => 0, column2 => 1 } ],
+               "Checking inserted data got id that was autoincremented"
+           );
+};
+
 
 test "inserting defined false value" => sub {
     my ($self) = @_;

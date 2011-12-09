@@ -298,7 +298,7 @@ sub insert {
     my $insert;
     for my $field ( keys %{ $schema } ) {
         next if $field eq "constraints";
-        next if $field eq "id";
+        next if $field eq "id" && $schema->{id} && $schema->{id} =~ m|AUTOINCREMENT|;
         $insert->{ $field } = $entry->{ $field };
     }
 
@@ -351,7 +351,7 @@ sub update {
     my $insert;
     for my $field ( keys %{ $schema } ) {
         next if $field eq "constraints";
-        next if $field eq "id";
+        next if $field eq "id" && $schema->{id} && $schema->{id} =~ m|AUTOINCREMENT|;
         next unless exists $update->{ $field };
         $insert->{ $field } = $update->{ $field };
     }
@@ -451,11 +451,16 @@ sub select {
 
     my $callback  = $options->{callback};
 
-    if ( $group && $group =~ m|([\w\d]+)| ) {
-        $tablename .= " GROUP BY $group";
-    }
-
     my( $statement, @bind ) = $self->sql_abstract->select( $tablename, $fields, $where, $order );
+
+    if ( $group && $group =~ m|([\w\d]+)| ) {
+        if ( $statement =~ m|ORDER| ) {
+            $statement =~ s|ORDER|GROUP BY $group ORDER|;
+        }
+        else {
+            $statement .= " GROUP BY $group";
+        }
+    }
 
     if ( $limit && $limit =~ m|(\d+)| ) {
         $statement .= " LIMIT $1";
