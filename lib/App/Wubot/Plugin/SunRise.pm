@@ -96,6 +96,8 @@ sub check {
         $message->{subject}    = "$message->{next} in $message->{next_until}";
     }
 
+    $message->{hours_until} = ( $message->{next_utime} - $now ) / 3600;
+
     return { react => $message, cache => $message };
 }
 
