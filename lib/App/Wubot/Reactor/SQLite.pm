@@ -24,6 +24,11 @@ sub react {
 
     my $sqlite;
 
+    unless ( $config->{file} ) {
+        $self->logger->warn( "WARNING: sqlite reactor called with no 'file' specified" );
+        return $message;
+    }
+
     # if we don't have a sqlite object for this file, create one now
     unless ( $self->sqlite->{ $config->{file} } ) {
         $self->sqlite->{ $config->{file} } = App::Wubot::SQLite->new( { file => $config->{file} } );
@@ -37,7 +42,11 @@ sub react {
         $self->sqlite->{ $config->{file} }->insert_or_update( $config->{tablename}, $message, $update_where, $config->{schema} );
     }
     else {
-        $self->sqlite->{ $config->{file} }->insert( $config->{tablename}, $message, $config->{schema} );
+        my $id = $self->sqlite->{ $config->{file} }->insert( $config->{tablename}, $message, $config->{schema} );
+
+        if ( $config->{id_field} ) {
+            $message->{ $config->{id_field} } = $id;
+        }
     }
 
     return $message;
