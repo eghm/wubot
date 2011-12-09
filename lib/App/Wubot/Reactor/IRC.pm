@@ -41,7 +41,7 @@ my $underline = "\037";
 
 my %color = ( white      => 0,
               black      => 1,
-              blue       => 2,
+              blue       => 12,
               green      => 3,
               lightred   => 4,
               red        => 5,
@@ -73,8 +73,12 @@ sub react {
 
     my $subject = $message->{subject_text} || $message->{subject};
 
-    my $date = strftime( "%d.%H:%M", localtime( $message->{lastupdate} ) );
+    my $date = strftime( "%H:%M", localtime( $message->{lastupdate} ) );
     my $key = $message->{key} || "?";
+
+    if ( $message->{username} ) {
+        $subject = "$message->{username}: $subject";
+    }
 
     $subject = "[$date $key] $subject";
 
