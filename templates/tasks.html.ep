@@ -41,7 +41,9 @@
       <td><%= $row->{file} %></td>
       <td>
         <a href='/open/org/<%= $row->{file} %>.org/<%= $row->{emacs_link} %>'><%= $row->{title} %></a>
-        <a href='/open/org/<%= $row->{file} %>.org/<%= $row->{emacs_link} %>?done=1'>*</a></td>
+        ( <a href='/open/org/<%= $row->{file} %>.org/<%= $row->{emacs_link} %>?done=1'>*</a>
+        <a href='/open/org/<%= $row->{file} %>.org/<%= $row->{emacs_link} %>?yesterday=1'>-</a> )
+      </td>
       <td><%= $row->{priority} %></td>
       <td bgcolor="<%= $row->{scheduled_color} %>"><%= $row->{scheduled} %></td>
       <td bgcolor="<%= $row->{deadline_color} %>"><%= $row->{deadline} %></td>

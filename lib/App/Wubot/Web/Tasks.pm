@@ -26,6 +26,8 @@ my $taskutil     = App::Wubot::Util::Tasks->new();
 my $colors       = App::Wubot::Util::Colors->new();
 my $timelength   = App::Wubot::Util::TimeLength->new();
 
+my $dst_flag = ( localtime() )[-1];
+
 sub tasks {
     my $self = shift;
 
@@ -149,6 +151,8 @@ sub ical {
 
         for my $due ( @due ) {
 
+            unless ( $dst_flag ) { $due += 3600 }
+
             my $dt_start = DateTime->from_epoch( epoch => $due );
             my $start    = $dt_start->ymd('') . 'T' . $dt_start->hms('') . 'Z';
 
@@ -221,6 +225,10 @@ sub open {
     my $command;
     if ( $self->param('done') ) {
         my $emacs_foo = qq{ (progn (org-open-link-from-string "[[$link]]" )(pop-to-buffer "$filename")(delete-other-windows)(org-todo)(save-buffer)(raise-frame)) };
+        $command = qq(emacsclient --socket-name /tmp/emacs501/server -e '$emacs_foo' &);
+    }
+    elsif ( $self->param('yesterday') ) {
+        my $emacs_foo = qq{ (progn (org-open-link-from-string "[[$link]]" )(pop-to-buffer "$filename")(delete-other-windows)(org-todo-yesterday)(save-buffer)(raise-frame)) };
         $command = qq(emacsclient --socket-name /tmp/emacs501/server -e '$emacs_foo' &);
     }
     else {
