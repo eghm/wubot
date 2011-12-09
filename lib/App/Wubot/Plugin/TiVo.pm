@@ -6,6 +6,7 @@ use Moose;
 use Net::TiVo;
 
 use App::Wubot::Logger;
+use App::Wubot::Util::Tivo;
 
 with 'App::Wubot::Plugin::Roles::Cache';
 with 'App::Wubot::Plugin::Roles::Plugin';
@@ -23,12 +24,51 @@ has 'logger'  => ( is => 'ro',
                    },
                );
 
+has 'sql'    => ( is      => 'ro',
+                  isa     => 'App::Wubot::SQLite',
+                  lazy    => 1,
+                  default => sub {
+                      return App::Wubot::SQLite->new( { file => $_[0]->dbfile } );
+                  },
+              );
+
+has 'dbfile' => ( is      => 'rw',
+                  isa     => 'Str',
+                  lazy    => 1,
+                  default => sub {
+                      return join( "/", $ENV{HOME}, "wubot", "sqlite", "tivo.sql" );
+                  },
+              );
+
+has 'tivo'   => ( is      => 'rw',
+                  isa     => 'App::Wubot::Util::Tivo',
+                  lazy    => 1,
+                  default => sub {
+                      return App::Wubot::Util::Tivo->new();
+                  }
+              );
+
 
 sub check {
     my ( $self, $inputs ) = @_;
 
     my $cache  = $inputs->{cache};
     my $config = $inputs->{config};
+
+    my $now = time;
+
+    my @results = $self->tivo->monitor( 'tivo' );
+
+    # if we got queue results, return them now
+    if ( scalar @results ) {
+        return { cache => $cache, react => \@results };
+    }
+
+    # only fetch new data every 4 hours
+    my $lastupdate = $cache->{last_fetch} || 0;
+    my $age = time - $lastupdate;
+    return if $age < 4*60*60;
+    $cache->{last_fetch} = time;
 
     # todo: forking plugin fu to prevent running more than one at once
     unless ( $config->{nofork} ) {
@@ -75,7 +115,6 @@ sub check {
 
                 my $show_string = $show->as_string();
 
-                next SHOW if $cache->{shows}->{$show_string};
                 next SHOW if $show->in_progress();
 
                 $new_size += $size;
@@ -85,28 +124,43 @@ sub check {
                 # duration in minutes
                 my $duration = int( $show->duration() / 60000 );
 
+                my $item = { subject     => $subject,
+                             name        => $show->name(),
+                             episode     => $show->episode(),
+                             episode_num => $show->episode_num(),
+                             recorded    => $show->capture_date(),
+                             format      => $show->format(),
+                             hd          => $show->high_definition(),
+                             size        => $size,
+                             channel     => $show->channel(),
+                             duration    => $duration,
+                             description => $show->description(),
+                             program_id  => $show->program_id(),
+                             series_id   => $show->series_id(),
+                             link        => $show->url(),
+                             coalesce    => $self->key,
+                             lastupdate  => $now,
+                             tivo_key    => $config->{key},
+                         };
 
-                $self->reactor->( { subject     => $subject,
-                                    name        => $show->name(),
-                                    episode     => $show->episode(),
-                                    episode_num => $show->episode_num(),
-                                    recorded    => $show->capture_date(),
-                                    format      => $show->format(),
-                                    hd          => $show->high_definition(),
-                                    size        => $size,
-                                    channel     => $show->channel(),
-                                    duration    => $duration,
-                                    description => $show->description(),
-                                    program_id  => $show->program_id(),
-                                    series_id   => $show->series_id(),
-                                    link        => $show->url(),
-                                    coalesce    => $self->key,
-                                },
-                                  $config
-                              );
+                # get the unique tivo recording id
+                $item->{link} =~ m/\=(\d+)$/;
+                $item->{tivoid} = $1;
+
+                # insert/update data in the tivo sqlite db
+                $self->tivo->update( $item );
+
+                # check if the file has been downloaded
+                $self->tivo->check_status( $item, $config->{directory}, $config->{library} );
+
+                # only send the reaction when the show is new
+                unless ( $cache->{shows}->{$show_string} ) {
+                    $self->reactor->( $item,
+                                      $config
+                                  );
+                }
 
                 $cache->{shows}->{$show_string} = 1;
-
             }
         }
 
@@ -114,11 +168,11 @@ sub check {
             $self->logger->logdie( "ERROR: now show information retrieved from the tivo" );
         }
 
-        my $message = { subject  => "Totals: shows=$show_count folders=$folder_count new=$new_size total=$total_size",
-                        shows    => $show_count,
-                        folders  => $folder_count,
-                        size     => $total_size,
-                        new_size => $new_size,
+        my $message = { subject    => "Totals: shows=$show_count folders=$folder_count new=$new_size total=$total_size",
+                        shows      => $show_count,
+                        folders    => $folder_count,
+                        size       => $total_size,
+                        new_size   => $new_size,
                     };
 
         if ( $config->{hd} ) {
@@ -130,7 +184,10 @@ sub check {
         $self->reactor->( $message, $config );
 
         # write out the updated cache
+        $cache->{lastupdate} = time;
         $self->write_cache( $cache );
+
+        $self->tivo->lastupdate( $message, $now );
 
         1;
     } or do {                   # catch
