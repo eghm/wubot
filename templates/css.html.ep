@@ -62,7 +62,7 @@ th.key, th.username {
   width: 10%
 }
 th.subject {
-  width: 60%;
+  width: 50%;
 }
 th.priority {
   width: 5%;
@@ -72,8 +72,8 @@ th.scheduled, th.deadline, th.lastupdate {
 }
 
 pre {
-	font-size: 12px;
-    font-family: Monaco;
+	font-size: 14px;
+    font-family: Anonymous Pro,Monaco,monospace;
 }
 
 </style>
