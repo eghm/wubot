@@ -1,7 +1,7 @@
 <html>
   <head>
     <title>wubot notifications</title>
-    <meta http-equiv="refresh" content="180">
+    <meta http-equiv="refresh" content="<%= 180 + int(rand(60)) %>">
     <%= include 'css' %>
   </head>
   <body bgcolor=black>
@@ -12,7 +12,7 @@
       |
       <a href="/notify"><%= $count %> unread</a>
       |
-      <a href="?expand=1">expand</a>
+      <a href="?collapse=1">collapse</a>
       |
       <a href="?old=1">old</a>
       |
@@ -27,10 +27,21 @@
 <form method="post">
 
     <table width='100%'>
+      <tr valign='top'>
+        <td width='50' class="mailboxes">
+          <table>
+            <% for my $mailbox ( @{ $mailboxes } ) { %>
+              <tr bgcolor='<%= $mailbox->{color} %>'><td><a href='?mailbox=<%= $mailbox->{mailbox} %>'><%= $mailbox->{mailbox} %></a></td><td><%= $mailbox->{count} %></td></tr>
+            <% } %>
+          </table>
+        </td>
+        <td>
+
+    <table width='100%'>
       <thead>
         <tr>
           <% for my $header ( @$headers ) { %>
-          <th class="<%= $header %>"><%= $header %></th>
+            <th class="<%= $header %>"><%= $header %></th>
           <% } %>
         </tr>
       </thead>
@@ -41,12 +52,6 @@
         <tr bgcolor="<%= $row->{color} %>">
 
           <td><input type="text" name="tag_<%= $row->{id} %>" size="5" style="background-color: <%= $row->{color} %>; border: 1px solid black"></td>
-
-          <td align="center">
-            <% if ( $row->{count} && $row->{count} > 1 ) { %>
-            <%= $row->{count} %>
-            <% } %>
-          </td>
 
           <td>
             <a href="?mailbox=<%= $row->{mailbox} %>"><%= $row->{mailbox} %></a>
@@ -61,7 +66,11 @@
           </td>
 
           <td class="seen">
-            <a href="?seen=<%= $row->{id} %>">seen</a>
+            <% if ( $mailbox ) { %>
+               <a href="?mailbox=<%= $mailbox %>&seen=<%= $row->{id} %>">seen</a>
+            <% } else { %>
+               <a href="?seen=<%= $row->{id} %>">seen</a>
+            <% } %>
           </td>
 
           <td style="text-align: right"><a href="?username=<%= $row->{username} %>"><%= $row->{username} %></a></td>
@@ -78,9 +87,9 @@
 
           <td>
             <% if ( $row->{body} ) { %>
-            <a href="/notify/id/<%= $row->{id} %>">*</a>
+              <a href="/notify/id/<%= $row->{id} %>">*</a>
             <% } else { %>
-            <a href="/notify/id/<%= $row->{id} %>">+</a>
+              <a href="/notify/id/<%= $row->{id} %>">+</a>
             <% } %>
           </td>
 
@@ -108,6 +117,8 @@
       </tbody>
       <tfoot></tfoot>
     </table>
+
+    </td></tr></table>
 
     <input type="image" src="images/wubot.png" border=0 height=32 width=32 alt="submit">
     </form>

@@ -79,11 +79,11 @@ schema files from config/schemas/ in the wubot distribution into your
 ~/wubot/schemas/.
 
 Notifications will be displayed in reverse order with the newest
-notification at the top.  The last 200 notifications will be
+notification at the top.  The last 100 notifications will be
 displayed.  Duplicate notifications will be collapsed into a single
 line and will contain a 'count' field that will show how many of the
-last 200 notifications were duplicates of this notification.  So, if
-you have more than 200 unseen notifications, the notifications count
+last 100 notifications were duplicates of this notification.  So, if
+you have more than 100 unseen notifications, the notifications count
 will be incomplete.  A fix is planned for this.
 
 You can click on the 'seen' link to mark the item seen.  Also the
@@ -173,7 +173,7 @@ sub notify {
 
     my $now = time;
 
-    my $limit = 200;
+    my $limit = 100;
     if ( $self->param('limit') ) {
         $limit = $self->param('limit');
     }
@@ -213,6 +213,8 @@ sub notify {
 
     }
 
+    my $mailbox     = $self->param( "mailbox" );
+
     my $seen_id      = $self->param( "seen" );
     if ( $seen_id ) {
         my @seen = split /,/, $seen_id;
@@ -221,7 +223,12 @@ sub notify {
                                 { id   => \@seen },
                             );
 
-        $self->redirect_to( "/notify" );
+        if ( $mailbox ) {
+            $self->redirect_to( "/notify?mailbox=$mailbox" );
+        }
+        else {
+            $self->redirect_to( "/notify" );
+        }
     }
 
     my $key      = $self->param( "key" );
@@ -251,7 +258,6 @@ sub notify {
         }
     }
 
-    my $mailbox     = $self->param( "mailbox" );
     if ( $mailbox ) {
         $expand = 1;
         if ( $mailbox eq "null" ) {
@@ -264,6 +270,7 @@ sub notify {
             $order = "lastupdate, id";
         }
     }
+    $self->stash( 'mailbox', $mailbox );
 
     my $seen_key      = $self->param( "seen_key" );
     if ( $seen_key ) {
@@ -292,8 +299,8 @@ sub notify {
         $where = { id => \@ids };
     }
 
-    if ( $self->param('collapse') ) {
-        $expand = 0;
+    unless ( $self->param('collapse') ) {
+        $expand = 1;
     }
 
     my @messages;
@@ -358,7 +365,7 @@ sub notify {
         }
     }
 
-    $self->stash( 'headers', [ qw/cmd num mailbox key1 key2 seen username icon id subject link score age/ ] );
+    $self->stash( 'headers', [ qw/cmd mailbox key1 key2 seen username icon id subject link score age/ ] );
 
     $self->stash( 'body_data', \@messages );
 
@@ -382,6 +389,20 @@ sub notify {
                                            } );
     $self->stash( 'todo', $todo->{count} );
 
+    my @mailboxes;
+    $sqlite_notify->select( { fields => 'mailbox, lastupdate, count(*) as count',
+                              tablename => 'notifications',
+                              group => 'mailbox',
+                              order => 'count DESC, lastupdate DESC',
+                              where => { seen => \$is_null },
+                              callback => sub {
+                                  my $row = shift;
+                                  $row->{color} = $timelength->get_age_color( $now - $row->{lastupdate} );
+                                  push @mailboxes, $row;
+                              },
+                          } );
+    $self->stash( 'mailboxes', \@mailboxes );
+
     $self->render( template => 'notify' );
 
 };
@@ -395,6 +416,8 @@ Display a single item from the notification queue.
 sub item {
     my $self = shift;
 
+    $self->stash( 'edit' => $self->param('edit') ? 1 : 0 );
+
     my $id = $self->stash( 'id' );
 
     my $cmd = $self->param( 'cmd' );
@@ -407,24 +430,42 @@ sub item {
                                       } );
 
     my $subject = $self->param( 'subject' );
-    if ( ! $cmd && $subject && $subject ne $item->{subject_text} ) {
-        $sqlite_notify->update( 'notifications',
-                                { subject_text => $subject },
-                                { id           => $id  },
-                            );
-        $self->redirect_to( "/notify/id/$id" );
+
+    if ( $self->param('edit') ) {
+        my $update = 0;
+        if ( $subject && $subject ne $item->{subject_text} ) {
+            $sqlite_notify->update( 'notifications',
+                                    { subject_text => $subject },
+                                    { id           => $id  },
+                                );
+            $update = 1;
+        }
+        my $body = $self->param('body');
+        if ( $body && $body ne $item->{body} ) {
+            $sqlite_notify->update( 'notifications',
+                                    { body => $body },
+                                    { id   => $id  },
+                                );
+            $update = 1;
+        }
+        if ( $update ) {
+            $self->redirect_to( "/notify/id/$id" );
+        }
     }
 
     my %urls;
+    my $image;
     URI::Find->new( sub {
                         my ( $url ) = @_;
                         $urls{$url}++;
+                        if ( ! $image && $url =~ m/\.(?:png|gif|jpg)$/i ) { $image = $url }
                         $url;
                     }
                 )->find(\$item->{subject});
     URI::Find->new( sub {
                         my ( $url ) = @_;
                         $urls{$url}++;
+                        if ( ! $image && $url =~ m/\.(?:png|gif|jpg)$/i ) { $image = $url }
                         $url;
                     }
                 )->find(\$item->{body});
@@ -434,12 +475,15 @@ sub item {
     delete $urls{ $item->{link} };
     $self->stash( urls => [ sort keys %urls ] );
 
+    $self->stash( image => $image );
+
     unless ( $item->{color} ) { $item->{color} = 'black' }
     $item->{color} = $colors->get_color( $item->{color} );
 
     $item->{icon} =~ s|^.*\/||;
 
     if ( $item->{body} ) {
+        $item->{body} =~ s|\<br\>|\n\n|g;
         $Text::Wrap::columns = 80;
         my $hs = HTML::Strip->new();
         $item->{body} = $hs->parse( $item->{body} );
@@ -465,8 +509,23 @@ sub item {
     $self->stash( tags => \@tags );
 
     my $words = $predict->count_words( $item->{subject_text}, $item->{body} );
-    my $recs = $predict->predict_tags( $words, { min => .01, limit => 5 } );
+    my $recs = $predict->predict_tags( $words, { limit => 5 } );
     $self->stash( predict_tags => $recs );
+
+    my $now = time;
+    my @mailboxes;
+    $sqlite_notify->select( { fields => 'mailbox, lastupdate, count(*) as count',
+                              tablename => 'notifications',
+                              group => 'mailbox',
+                              order => 'count DESC, lastupdate DESC',
+                              where => { seen => \$is_null },
+                              callback => sub {
+                                  my $row = shift;
+                                  $row->{color} = $timelength->get_age_color( $now - $row->{lastupdate} );
+                                  push @mailboxes, $row;
+                              },
+                          } );
+    $self->stash( 'mailboxes', \@mailboxes );
 
     $self->render( template => 'item' );
 }
@@ -581,6 +640,7 @@ sub _cmd {
             $sqlite_notify->insert( 'tags',
                                     { remoteid => $id, tag => $tag, tablename => 'notifications', lastupdate => time },
                                 );
+
         }
     }
 }

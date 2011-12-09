@@ -30,7 +30,15 @@ has 'logger'  => ( is => 'ro',
                    },
                );
 
+sub update {
+    my ( $self, $item, $where ) = @_;
 
+    $self->sql->insert_or_update( 'notifications',
+                                  $item,
+                                  $where
+                              );
+
+}
 
 sub insert_tag {
     my ( $self, $id, $tag ) = @_;
@@ -101,14 +109,19 @@ sub get_tagged_ids {
 
     my @ids;
 
-    $self->sql->select( { tablename => 'tags',
-                          fieldname => 'remoteid',
-                          where     => { tag => $tag },
-                          callback  => sub {
-                              my $row = shift;
-                              push @ids, $row->{remoteid};
-                          },
-                      } );
+    my $select = { tablename => 'tags',
+                   fieldname => 'remoteid',
+                   callback  => sub {
+                       my $row = shift;
+                       push @ids, $row->{remoteid};
+                   },
+               };
+
+    if ( $tag ) {
+        $select->{where} = { tag => $tag };
+    }
+
+    $self->sql->select( $select );
 
     return @ids;
 }
@@ -120,8 +133,47 @@ sub get_item_by_id {
                                          where     => { id => $id },
                                      } );
 
+    # todo: fall back to notifications_archive if does not exist in notifications table!
+    # todo: option to disable fallback, e.g. for 'archive' method
+
     return $item;
 }
 
+sub select {
+    my ( $self, $select_h ) = @_;
+
+    $select_h->{tablename} = 'notifications';
+
+    my ( $item ) = $self->sql->select( $select_h );
+
+    return ( $item );
+}
+
+sub archive {
+    my ( $self, $id ) = @_;
+
+    # todo: do this as a single transaction!
+
+    $self->logger->info( "Archiving: $id" );
+
+    $self->logger->debug( "Selecting id: $id" );
+    my ( $item ) = $self->get_item_by_id( $id );
+
+    unless ( $item->{seen} ) {
+        $self->logger->warn( "\tSkipping unseen item!" );
+    }
+
+    $self->logger->debug( "Inserting into archive: $id" );
+    $self->sql->insert_or_update( 'notifications_archive', $item, { id => $id } );
+
+    $self->logger->debug( "Deleting: $id" );
+    $self->sql->delete( 'notifications', { id => $id } );
+}
+
+sub vacuum {
+    my ( $self ) = @_;
+
+    $self->sql->vacuum();
+}
 
 1;
