@@ -99,8 +99,8 @@ sub react {
             $message->{subject} = join( " ", $message->{subject}, "[$message->{status_count}x $message->{status}]" );
         }
         else {
-            $message->{status_subject} = $message->{subject};
-            delete $message->{subject};
+            $message->{quiet} = 1;
+            $message->{suppress} = 1;
         }
     }
 
