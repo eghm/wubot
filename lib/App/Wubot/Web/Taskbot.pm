@@ -308,6 +308,96 @@ sub open {
 
 }
 
+
+sub ical {
+    my $self = shift;
+
+    my $calendar = Data::ICal->new();
+
+    my $callback = sub {
+        my $entry = shift;
+
+        return unless $entry->{duration};
+
+        my @due;
+
+        if ( $entry->{scheduled} ) {
+            push @due, $entry->{scheduled};
+
+            if ( $entry->{recurrence} ) {
+                my $seconds = $timelength->get_seconds( $entry->{recurrence} );
+
+                for my $count ( 1 .. 3 ) {
+                    push @due, $entry->{scheduled} + $seconds;
+                }
+            }
+        }
+        else {
+            return;
+        }
+
+        my $duration = $timelength->get_seconds( $entry->{duration} );
+
+        for my $due ( @due ) {
+
+            my $dt_start = DateTime->from_epoch( epoch => $due );
+            my $start    = $dt_start->ymd('') . 'T' . $dt_start->hms('') . 'Z';
+
+            my $dt_end   = DateTime->from_epoch( epoch => $due + $duration );
+            my $end      = $dt_end->ymd('') . 'T' . $dt_end->hms('') . 'Z';
+
+            my $id = join "-", 'WUBOT', md5_hex( $entry->{taskid} ), $start;
+
+            my %event_properties = ( summary     => $entry->{title},
+                                     dtstart     => $start,
+                                     dtend       => $end,
+                                     uid         => $id,
+                                 );
+
+            $event_properties{description} = $entry->{body};
+            utf8::encode( $event_properties{description} );
+
+            my $vevent = Data::ICal::Entry::Event->new();
+            $vevent->add_properties( %event_properties );
+
+            if ( $entry->{status} eq "TODO" ) {
+                for my $alarm ( 10 ) {
+
+                    my $alarm_time = $due - 60*$alarm;
+
+                    my $valarm_sound = Data::ICal::Entry::Alarm::Audio->new();
+                    $valarm_sound->add_properties(
+                        trigger   => [ Date::ICal->new( epoch => $alarm_time )->ical, { value => 'DATE-TIME' } ],
+                    );
+                    $vevent->add_entry($valarm_sound);
+                }
+            }
+
+            $calendar->add_entry($vevent);
+        }
+    };
+
+    # last 30 days worth of data
+    my $time = time - 60*60*24*30;
+
+    my $select = { tablename => 'taskbot',
+                   callback  => $callback,
+                   where     => { scheduled => { '>', $time } },
+                   order     => 'scheduled',
+               };
+
+    if ( $self->param( 'status' ) ) {
+        $select->{where} = { status => $self->param( 'status' ) };
+    }
+
+    $taskbot->sql->select( $select );
+
+    $self->stash( calendar => $calendar->as_string );
+
+    $self->render( template => 'calendar', format => 'ics', handler => 'epl' );
+}
+
+
 # sub tasks {
 #     my $self = shift;
 
@@ -388,106 +478,6 @@ sub open {
 
 #     $self->render( template => 'tasks' );
 
-# }
-
-# sub ical {
-#     my $self = shift;
-
-#     my $calendar = Data::ICal->new();
-
-#     my $callback = sub {
-#         my $entry = shift;
-
-#         return unless $entry->{duration};
-
-#         my @due;
-#         if ( $entry->{deadline_utime} ) {
-#             push @due, $entry->{deadline_utime};
-
-#             if ( $entry->{deadline_recurrence} ) {
-#                 my $seconds = $timelength->get_seconds( $entry->{deadline_recurrence} );
-
-#                 for my $count ( 1 .. 5 ) {
-#                     push @due, $entry->{deadline_utime} + $seconds*$count;
-#                 }
-#             }
-#         }
-#         elsif ( $entry->{scheduled_utime} ) {
-#             push @due, $entry->{scheduled_utime};
-
-#             if ( $entry->{scheduled_recurrence} ) {
-#                 my $seconds = $timelength->get_seconds( $entry->{scheduled_recurrence} );
-
-#                 for my $count ( 1 .. 3 ) {
-#                     push @due, $entry->{scheduled_utime} + $seconds;
-#                 }
-#             }
-#         }
-#         else {
-#             return;
-#         }
-
-#         my $duration = $timelength->get_seconds( $entry->{duration} );
-
-#         for my $due ( @due ) {
-
-#             unless ( $dst_flag ) { $due += 3600 }
-
-#             my $dt_start = DateTime->from_epoch( epoch => $due );
-#             my $start    = $dt_start->ymd('') . 'T' . $dt_start->hms('') . 'Z';
-
-#             my $dt_end   = DateTime->from_epoch( epoch => $due + $duration );
-#             my $end      = $dt_end->ymd('') . 'T' . $dt_end->hms('') . 'Z';
-
-#             my $id = join "-", 'WUBOT', md5_hex( $entry->{taskid} ), $start;
-
-#             my %event_properties = ( summary     => $entry->{taskid},
-#                                      dtstart     => $start,
-#                                      dtend       => $end,
-#                                      uid         => $id,
-#                                  );
-
-#             $event_properties{description} = $entry->{body};
-#             utf8::encode( $event_properties{description} );
-
-#             my $vevent = Data::ICal::Entry::Event->new();
-#             $vevent->add_properties( %event_properties );
-
-#             if ( $entry->{status} eq "todo" ) {
-#                 for my $alarm ( 10 ) {
-
-#                     my $alarm_time = $due - 60*$alarm;
-
-#                     my $valarm_sound = Data::ICal::Entry::Alarm::Audio->new();
-#                     $valarm_sound->add_properties(
-#                         trigger   => [ Date::ICal->new( epoch => $alarm_time )->ical, { value => 'DATE-TIME' } ],
-#                     );
-#                     $vevent->add_entry($valarm_sound);
-#                 }
-#             }
-
-#             $calendar->add_entry($vevent);
-#         }
-#     };
-
-#     # last 30 days worth of data
-#     my $time = time - 60*60*24*30;
-
-#     my $select = { tablename => 'tasks',
-#                    callback  => $callback,
-#                    where     => [ { scheduled_utime => { '>', $time } }, { deadline_utime => { '>', $time } } ],
-#                    order     => 'deadline_utime, scheduled_utime',
-#                };
-
-#     if ( $self->param( 'status' ) ) {
-#         $select->{where} = { status => $self->param( 'status' ) };
-#     }
-
-#     $sqlite_tasks->select( $select );
-
-#     $self->stash( calendar => $calendar->as_string );
-
-#     $self->render( template => 'calendar', format => 'ics', handler => 'epl' );
 # }
 
 1;

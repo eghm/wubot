@@ -45,6 +45,7 @@
 
         <% my $last_date; %>
         <% my $yesterday =  strftime( '%Y-%m-%d %a', localtime( time - 24*60*60 ) ); %>
+        <% my $today     =  strftime( '%Y-%m-%d %a', localtime( time ) ); %>
         <% for my $item ( @{ $body_data } ) { %>
 
         <% my $date =  strftime( '%Y-%m-%d %a', localtime( $item->{scheduled} ) ); %>
@@ -54,13 +55,15 @@
           <% for my $header ( @$headers ) { %>
           <% if ( $header eq "taskid" ) { %>
 
-          <td align="right"><font size="-1">
+          <td height="50px" valign="bottom" align="right">
               <% if ( $date eq $yesterday ) { %>
               Yesterday
+              <% } elsif ( $date eq $today ) { %>
+              Today
               <% } else { %>
               <%= $date %>
               <% } %>
-          </font></td>
+          </td>
           <% } else { %>
           <td></td>
           <% } %>
