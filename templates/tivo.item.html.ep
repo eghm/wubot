@@ -76,6 +76,34 @@
           </td>
         </tr>
 
+        <tr>
+          <td width="8%">errmsg</td>
+          <td>
+            <input type="text" name="errmsg" size="64" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{errmsg} %>">
+          </td>
+        </tr>
+
+        <tr>
+          <td width="8%">fetched</td>
+          <td>
+            <input type="text" name="downloaded" size="64" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{downloaded} %>">
+          </td>
+        </tr>
+
+        <tr>
+          <td width="8%">decoded</td>
+          <td>
+            <input type="text" name="decoded" size="64" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{decoded} %>">
+          </td>
+        </tr>
+
+        <tr>
+          <td width="8%">library</td>
+          <td>
+            <input type="text" name="library" size="64" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{library} %>">
+          </td>
+        </tr>
+
       </table>
 
       </td></tr></table>

@@ -62,14 +62,13 @@ sub update_tivo {
 
     my $item = { tivoid => $tivoid };
 
-    if ( defined $self->param( 'download' ) ) {
-        $item->{download} = $self->param( 'download' );
-        $changed_flag = 1;
-    }
+    for my $flag ( qw( color download errmsg downloaded decoded library ) ) {
 
-    if ( $self->param( 'color' ) ) {
-        $item->{color} = $self->param( 'color' );;
-        $changed_flag = 1;
+        if ( defined $self->param( $flag ) ) {
+            $item->{$flag} = $self->param( $flag );
+            $changed_flag = 1;
+        }
+
     }
 
     if ( $changed_flag ) {
@@ -120,6 +119,8 @@ sub list {
 
         $item->{tivodl} = $item->{channel} ? "" : "dl";
         $item->{hd}         = $item->{hd} eq "Yes" ? "HD" : "";
+
+        $item->{duration} = $timelength->get_human_readable( $item->{duration} * 60 );
 
         push @items, $item;
     };
