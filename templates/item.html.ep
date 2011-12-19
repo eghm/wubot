@@ -7,12 +7,23 @@
 
     <%= include 'nav' %>
 
-    <form method="post">
+    <table width='100%'>
+      <tr valign='top'>
+        <td width='50' class="mailboxes">
+          <table>
+            <% for my $mailbox ( @{ $mailboxes } ) { %>
+              <tr bgcolor='<%= $mailbox->{color} %>'><td><a href='/notify?mailbox=<%= $mailbox->{mailbox} %>'><%= $mailbox->{mailbox} %></a></td><td><%= $mailbox->{count} %></td></tr>
+            <% } %>
+          </table>
+        </td>
+        <td>
+
+      <form method="post">
 
       <table width="100%" bgcolor="<%= $item->{color} %>">
         <tr>
-          <td>id</td>
-          <td><%= $item->{id} %></td>
+          <td width="8%">id</td>
+          <td><%= $item->{id} %> | <a href="?edit=1">edit</a></td>
         </tr>
 
         <tr>
@@ -39,7 +50,11 @@
         <tr>
           <td>subject</td>
           <td>
-            <textarea name="subject" rows="4" cols="120" style="background-color: <%= $item->{color} %>; border: 0px"><%= $item->{subject_text} %></textarea>
+            <% if ( $edit ) { %>
+              <textarea name="subject" rows="4" cols="120" style="background-color: <%= $item->{color} %>; border: 0px"><%= $item->{subject_text} %></textarea>
+            <% } else { %>
+              <%= $item->{subject_text} %>
+            <% } %>
           </td>
         </tr>
 
@@ -58,6 +73,14 @@
           <td>
             <% for my $tag ( @$tags ) { %>
             <a href='/notify?tag=<%= $tag %>'><%= $tag %></a><br>
+            <% } %>
+            <% if ( scalar keys %$predict_tags ) { %>
+              <br>
+              <font color="pink"> |
+              <% for my $tag ( sort { $predict_tags->{$b} <=> $predict_tags->{$a} } keys %$predict_tags ) { %>
+                <a style='color: pink' href='/notify?tag=<%= $tag %>'><%= $tag %> - <%= sprintf( "%0.1f", $predict_tags->{$tag} * 100 ) %>%</a> |
+              <% } %>
+              </font>
             <% } %>
           </td>
         </tr>
@@ -79,9 +102,20 @@
         <tr height="100px">
           <td>body</td>
           <td>
-            <table width="50%"><tr><td style="border-width: 0px 0px 0 0;"><pre><%= $item->{body} %></pre></td></tr></table>
+            <% if ( $edit ) { %>
+              <textarea name="body" rows="40" cols="120" style="background-color: <%= $item->{color} %>; border: 0px"><%= $item->{body} %></textarea>
+            <% } else { %>
+              <table width="50%"><tr><td style="border-width: 0px 0px 0 0;"><pre><%= $item->{body} %></pre></td></tr></table>
+            <% } %>
           </td>
         </tr>
+
+        <% if ( $image ) { %>
+        <tr>
+          <td>image</td>
+          <td><img src="<%= $image %>"></td>
+        </tr>
+        <% } %>
 
         <tr>
           <td>link</td>
@@ -97,16 +131,9 @@
           </td>
         </tr>
       
-        <tr>
-          <td>predicted tags</td>
-          <td>
-            <% for my $tag ( sort { $predict_tags->{$b} <=> $predict_tags->{$a} } keys %$predict_tags ) { %>
-            <a href='/notify?tag=<%= $tag %>'><%= $tag %> - <%= sprintf( "%0.1f", $predict_tags->{$tag} * 100 ) %>%</a><br>
-            <% } %>
-          </td>
-        </tr>
-
       </table>
+
+      </td></tr></table>
 
       <input type="image" src="/images/wubot.png" border=0 height=32 width=32 alt="submit">
 
