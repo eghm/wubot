@@ -6,12 +6,12 @@ use Moose;
 use POSIX qw(strftime);
 
 use App::Wubot::Logger;
-use App::Wubot::Util::Tasks;
+use App::Wubot::Util::Taskbot;
 
 with 'App::Wubot::Plugin::Roles::Cache';
 with 'App::Wubot::Plugin::Roles::Plugin';
 
-my $taskutil   = App::Wubot::Util::Tasks->new();
+my $taskbot   = App::Wubot::Util::Taskbot->new();
 
 sub check {
     my ( $self, $inputs ) = @_;
@@ -19,12 +19,14 @@ sub check {
     my $cache  = $inputs->{cache};
     my $config = $inputs->{config};
 
-    my @tasks = $taskutil->check_schedule();
+    my @tasks = $taskbot->check_schedule();
 
     for my $task ( @tasks ) {
 
         # use current time for notification, not lastupdate time on record
         delete $task->{lastupdate};
+
+        $task->{subject} = $task->{title};
 
         $task->{sticky} = 1;
         $task->{urgent} = 1;
@@ -54,7 +56,6 @@ App::Wubot::Plugin::TaskNotify - monitor for upcoming scheduled tasks
 
   ---
   dbfile: /Users/wu/wubot/sqlite/tasks.sql
-  tablename: tasks
   delay: 5m
 
 

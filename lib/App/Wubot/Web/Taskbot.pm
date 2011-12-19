@@ -22,28 +22,144 @@ use YAML;
 use App::Wubot::Util::Colors;
 use App::Wubot::Util::Taskbot;
 use App::Wubot::Util::TimeLength;
+use App::Wubot::Util::WebUtil;
 
-my $taskbot = App::Wubot::Util::Taskbot->new();
+my $util    = App::Wubot::Util::WebUtil->new( { type => 'taskbot',
+                                                idname => 'taskid',
+                                                fields => [ qw( cmd color title body status priority duration category recurrence deadline scheduled ) ],
+                                            } );
+
+my $taskbot      = App::Wubot::Util::Taskbot->new();
 my $colors       = App::Wubot::Util::Colors->new();
-my $timelength   = App::Wubot::Util::TimeLength->new();
+my $timelength   = App::Wubot::Util::TimeLength->new( { space => 1 } );
 
 my $task_defaults = { color => 'blue',
                       status => 'TODO',
                       priority => 50,
                   };
 
+sub get_submit_item_postproc {
+    my ( $item ) = @_;
+
+    return unless defined $item;
+
+    for my $param ( qw( deadline scheduled ) ) {
+        my $value = $item->{$param};
+        next unless $value;
+        if ( $value =~ m|^\d+$| ) {
+            $item->{$param} = $value;
+        } else {
+            $item->{ $param } = UnixDate( ParseDate( $value ), "%s" );
+        }
+    }
+}
+
+sub get_item_postproc {
+    my ( $item, $id ) = @_;
+
+    my $body = $taskbot->read_body( $id );
+    if ( $body ) {
+        $item->{body} = $body;
+    }
+
+    return $item;
+}
+
+sub cmd {
+    my ( $self, $taskid, $cmdlist ) = @_;
+
+    print "TASKID: $taskid\n";
+
+    my ( $item ) = $util->get_item( $taskid, \&get_item_postproc );
+
+    for my $cmd ( split /\s*,\s*/, $cmdlist ) {
+
+        if ( $cmd =~ m/(\+|\-)(\d+)(\w)/ ) {
+            print "Updating task time to $1 $2 $3\n";
+            my $seconds = $timelength->get_seconds( "$1$2$3" );
+            $item->{scheduled} = time + $seconds;
+        }
+        elsif ( $cmd =~ m/(\+|\-)\.(\d+)(\w)/ ) {
+            print "Updating task time to relative $1 $2 $3\n";
+            my $seconds = $timelength->get_seconds( "$1$2$3" );
+            $item->{scheduled} = $item->{scheduled} + $seconds;
+        }
+        elsif ( $cmd =~ m/s\.(.*)/ ) {
+            my $time = $1;
+            $item->{scheduled} = UnixDate( ParseDate( $time ), "%s" );
+        }
+        elsif ( $cmd =~ m/p.(\d+)/ ) {
+            $item->{priority} = $1;
+        }
+        elsif ( $cmd =~ m/d.(\d+\w?)/ ) {
+            if ( $1 eq "0" ) {
+                $item->{duration} = undef;
+            }
+            else {
+                $item->{duration} = $1;
+            }
+        }
+        elsif ( $cmd eq "done" ) {
+            $item->{status} = "DONE";
+        }
+    }
+
+    $util->update_item( $item, $taskid, \&update_task_preproc, $self );
+}
+
+sub update_task_preproc {
+    my ( $self, $task_h ) = @_;
+
+    if ( $task_h->{status} && $task_h->{status} eq "DONE" ) {
+
+        my ( $task_orig ) = $util->get_item( $task_h->{taskid}, \&get_item_postproc );
+
+        if ( $task_orig->{recurrence} ) {
+            $task_h->{status} = "TODO";
+
+            my $next = $timelength->get_seconds( $task_h->{recurrence} );
+
+            if ( $task_orig->{deadline} ) {
+                $task_h->{deadline} = $task_orig->{deadline} + $next;
+            }
+            if ( $task_orig->{scheduled} ) {
+                $task_h->{scheduled} = $task_orig->{scheduled} + $next;
+            }
+        }
+    }
+
+    if ( $task_h->{body} ) {
+        $taskbot->write_body( $task_h->{taskid}, $task_h->{body} );
+    }
+}
+
 sub item {
     my $self = shift;
 
     my $taskid = $self->stash( 'taskid' );
 
-    # post
-    $self->update_task( $taskid );
+    my $got_item = $util->get_submit_item( $self, \&get_submit_item_postproc, $taskid );
+
+    if ( $got_item ) {
+        $util->update_item( $got_item, $taskid, \&update_task_preproc, $self );
+
+        if ( $got_item->{cmd} ) {
+            $self->cmd( $taskid, $got_item->{cmd} );
+        }
+
+        my $redir = $self->param('redir');
+        if ( $redir ) {
+            $self->redirect_to( "/taskbot/$redir" );
+            return;
+        }
+        $self->redirect_to( "/taskbot/item/$taskid" );
+        return;
+    }
 
     my $now = time;
 
     # get
-    my $item = $taskbot->get_task( $taskid );
+    my ( $item ) = $util->get_item( $taskid, \&get_item_postproc );
     $item->{display_color} = $colors->get_color( $item->{color} );
 
     $item->{lastupdate_color} = $timelength->get_age_color( $now - $item->{lastupdate} );
@@ -90,7 +206,7 @@ sub newtask {
 sub create_task {
     my $self = shift;
 
-    my $item = $self->get_item_post();
+    my $item = $util->get_submit_item( $self, \&get_submit_item_postproc );
 
     $self->stash( "item" => $item );
 
@@ -99,105 +215,21 @@ sub create_task {
     $self->redirect_to( "/taskbot/item/$task->{taskid}" );
 }
 
-sub update_task {
-    my ( $self, $taskid ) = @_;
-
-    unless ( $taskid ) {
-        die "ERROR: update_task called without task id";
-    }
-
-    my ( $item, $changed ) = $self->get_item_post( $taskid );
-
-    if ( $changed ) {
-        $item->{lastupdate} = time;
-        $taskbot->update_task( $taskid, $item );
-
-        my $redir = $self->param('redir');
-        if ( $redir ) {
-            $self->redirect_to( "/taskbot/$redir" );
-        }
-        else {
-            $self->redirect_to( "/taskbot/item/$taskid" );
-        }
-    }
-}
-
-sub get_item_post {
-    my ( $self, $taskid ) = @_;
-
-    my $item;
-
-    my $changed_flag;
-
-  PARAM:
-    for my $param ( qw( color title body status priority duration category recurrence ) ) {
-
-        next PARAM unless $self->param( $param );
-
-        $item->{ $param } = $self->param( $param );
-        $changed_flag = 1;
-    }
-
-    for my $param ( qw( deadline scheduled ) ) {
-        my $value = $self->param( $param );
-        if ( $value ) {
-            print "UPDATE $param to $value\n";
-            $changed_flag = 1;
-            if ( $value =~ m/^null$/i ) {
-                $item->{ $param } = undef;
-            }
-            elsif ( $value =~ m|^\d+$| ) {
-                $item->{$param} = $value;
-            }
-            else {
-                $item->{ $param } = UnixDate( ParseDate( $value ), "%s" );
-            }
-        }
-    }
-
-    if ( $changed_flag && $taskid ) {
-        $item->{taskid} = $taskid;
-    }
-
-    if ( wantarray ) {
-        return ( $item, $changed_flag );
-    }
-    else {
-        return $item;
-    }
-}
-
-sub check_session {
-    my ( $self, $variable ) = @_;
-
-    my $val_param   = $self->param(   $variable );
-    my $val_session = $self->session( $variable );
-
-    # variable being set to a new value
-    if ( $val_param ) {
-        $self->session( $variable => $val_param );
-        $self->stash( $variable => $val_param );
-        return $val_param
-    }
-
-    # variable being set to false
-    if ( defined $val_param ) {
-        $self->session( $variable => 0 );
-        $self->stash( $variable => "" );
-        print "UNSET: $variable\n";
-        return;
-    }
-
-    # variable not changed, return from session
-    $self->stash( $variable => $val_session );
-    $self->stash( $variable => $val_session );
-    return $val_session;
-}
-
 sub tasks {
     my ( $self ) = @_;
 
-    $self->stash( 'headers', [qw/taskid lastupdate category status priority edit title duration scheduled rec/ ] );
+    my $params = $self->req->params->to_hash;
+    for my $param ( sort keys %{ $params } ) {
+        next unless $params->{$param};
+        next unless $param =~ m|^cmd_([\w\d\-]+)|;
+        my $id = $1;
+
+        my $cmd = $params->{$param};
+
+        $self->cmd( $id, $cmd );
+    }
+
+    $self->stash( 'headers', [qw/timer cmd status time dur title launch priority rec category lastupdate/ ] );
 
     my $now = time;
     my $start = $now + 15*60;
@@ -211,19 +243,19 @@ sub tasks {
 
     $query->{where}->{status}    = "TODO";
 
-    my $status = $self->check_session( 'status' );
+    my $status = $util->check_session( $self, 'status' );
     if ( $status ) {
         $query->{where}->{status} = uc( $status );
     }
 
-    my $category = $self->check_session( 'category' );
+    my $category = $util->check_session( $self, 'category' );
     if ( $category ) {
         $query->{where}->{category} = { LIKE => "%" . $category . "%" };
     }
 
     my $is_not_null = "IS NOT NULL";
 
-    my $deadline = $self->check_session( 'deadline' );
+    my $deadline = $util->check_session( $self, 'deadline' );
     if ( $deadline eq "false" ) {
         $query->{where}->{deadline}  = undef;
     }
@@ -239,7 +271,7 @@ sub tasks {
         $query->{order} = [ 'deadline', 'scheduled', 'priority DESC', 'lastupdate DESC' ];
     }
 
-    my $scheduled = $self->check_session( 'scheduled' );
+    my $scheduled = $util->check_session( $self, 'scheduled' );
     if ( $scheduled eq "false" ) {
         $query->{where}->{scheduled}  = undef;
     }
@@ -259,9 +291,25 @@ sub tasks {
     $query->{callback} = sub {
         my $task = shift;
 
-        $task->{lastupdate_color} = $timelength->get_age_color( $now - $task->{lastupdate} );
+        my $age =  $now - $task->{lastupdate};
+        $task->{age} = $timelength->get_human_readable( $age );
+        $task->{lastupdate_color} = $timelength->get_age_color( $age );
+
+        $task->{timer} = $task->{scheduled} ?
+                         $timelength->get_human_readable( $task->{scheduled} - time ) :
+                         "";
 
         $task->{color} = $colors->get_color( $task->{color} );
+
+        if ( ! $task->{scheduled} ) {
+            $task->{timer_color} = $task->{color};
+        }
+        elsif ( $task->{scheduled} > time ) {
+            $task->{timer_color} = $timelength->get_age_color( abs( $task->{scheduled} - time ) );
+        }
+        else {
+            $task->{timer_color} = $colors->get_color( "red" );
+        }
 
         if ( $task->{scheduled} ) {
             if ( $now > $task->{scheduled} ) {
@@ -354,8 +402,10 @@ sub ical {
                                      uid         => $id,
                                  );
 
-            $event_properties{description} = $entry->{body};
-            utf8::encode( $event_properties{description} );
+            if ( $entry->{body} ) {
+                $event_properties{description} = $entry->{body};
+                utf8::encode( $event_properties{description} );
+            }
 
             my $vevent = Data::ICal::Entry::Event->new();
             $vevent->add_properties( %event_properties );

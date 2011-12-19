@@ -102,6 +102,30 @@ sub get_task {
     return $task_h;
 }
 
+sub check_schedule {
+    my ( $self, $options ) = @_;
+
+    my @tasks;
+
+    my $limit = $options->{limit} || 10;
+
+    my $start = time;
+    my $end   = $start + 60*15;
+
+    $self->sql->select( { tablename => 'taskbot',
+                          order     => [ 'scheduled', 'priority DESC', 'lastupdate DESC' ],
+                          where     => { scheduled => { '>=' => $start, '<=' => $end } },
+                          limit     => $limit,
+                          callback  => sub {
+                              my $row = shift;
+                              push @tasks, $row;
+                          },
+                      } );
+
+    return @tasks;
+
+}
+
 sub create_task {
     my ( $self, $task_h ) = @_;
 
@@ -126,52 +150,6 @@ sub create_task {
 
     if ( $task_h->{body} ) {
         $self->write_body( $task_h->{taskid}, $task_h->{body} );
-    }
-
-    return $task_h;
-}
-
-sub update_task {
-    my ( $self, $taskid, $task_h, $now ) = @_;
-
-    unless ( $taskid ) {
-        die "ERROR: update_task called without task id!";
-    }
-
-    unless ( $task_h ) {
-        die "ERROR: update_task called without task data!";
-    }
-
-    unless ( $now ) { $now = time }
-
-    # ensure taskid is set in the task
-    $task_h->{taskid} = $taskid;
-
-    print "UPDATING $taskid\n";
-    print YAML::Dump $task_h;
-
-    if ( $task_h->{status} && $task_h->{status} eq "DONE" ) {
-
-        my $task_orig = $self->get_task( $taskid );
-
-        if ( $task_orig->{recurrence} ) {
-            $task_h->{status} = "TODO";
-
-            my $next = $self->timelength->get_seconds( $task_h->{recurrence} );
-
-            if ( $task_orig->{deadline} ) {
-                $task_h->{deadline} = $task_orig->{deadline} + $next;
-            }
-            if ( $task_orig->{scheduled} ) {
-                $task_h->{scheduled} = $task_orig->{scheduled} + $next;
-            }
-        }
-    }
-
-    $self->sql->insert_or_update( 'taskbot', $task_h, { taskid => $taskid } );
-
-    if ( $task_h->{body} ) {
-        $self->write_body( $taskid, $task_h->{body} );
     }
 
     return $task_h;

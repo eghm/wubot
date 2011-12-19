@@ -84,6 +84,13 @@
         </tr>
 
         <tr>
+          <td width="8%">command</td>
+          <td><input type="text" name="cmd" size="8" style="background-color: <%= $item->{display_color} %>; border: 1px solid black"></td>
+        </tr>
+
+
+          
+        <tr>
           <td width="8%"><a href='/taskbot/edit/<%= $item->{taskid} %>'>body</a></td>
           <td><pre><%= $item->{body} %></pre></td>
         </tr>

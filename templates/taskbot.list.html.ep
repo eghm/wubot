@@ -1,4 +1,6 @@
 % use POSIX qw(strftime);
+% use App::Wubot::Util::TimeLength;
+% my $timelength = App::Wubot::Util::TimeLength->new( { space => 1 } );
 <html>
   <head>
     <title>Taskbot</title>
@@ -31,7 +33,9 @@
       <a href="?status=done">done</a>
       |
     </font>
-  
+
+    <form method="post">
+
     <table width='100%' class='sortable'>
       <thead>
         <tr>
@@ -53,48 +57,63 @@
 
         <tr bgcolor="black">
           <% for my $header ( @$headers ) { %>
-          <% if ( $header eq "taskid" ) { %>
+            <% if ( $header eq "timer" ) { %>
 
           <td height="50px" valign="bottom" align="right">
-              <% if ( $date eq $yesterday ) { %>
-              Yesterday
-              <% } elsif ( $date eq $today ) { %>
-              Today
-              <% } else { %>
-              <%= $date %>
-              <% } %>
+            <% if ( $date eq $yesterday ) { %>
+            Yesterday
+            <% } elsif ( $date eq $today ) { %>
+            Today
+            <% } else { %>
+            <%= $date %>
+            <% } %>
           </td>
+
           <% } else { %>
           <td></td>
           <% } %>
           <% } %>
+
         </tr>
         <% $last_date = $date; %>
         <% } %>
 
         <tr bgcolor="<%= $item->{color} %>">
 
-          <td align="right" width='8%'><a href='/taskbot/item/<%= $item->{taskid} %>'>*</a></td>
-          <td width='8%' bgcolor="<%= $item->{lastupdate_color} %>"><%=  $item->{lastupdate} ? strftime( '%Y-%m-%d %H:%M', localtime( $item->{lastupdate} ) ) : ""  %></td>
-          <td width='8%'><% for my $cat ( split /\./, $item->{category} ) { %><a href="?category=<%= $cat %>"><%= $cat %></a> <% } %></td>
-          <td width='5%'><a href="/taskbot/item/<%= $item->{taskid} %>?status=DONE&recurrence=<%= $item->{recurrence} %>&redir=list"><%= $item->{status} %></a></td>
+          <td align="right" bgcolor="<%= $item->{timer_color} %>" width='8%'>
+            <% if ( $item->{timer} ) { %>
+            <%=  $item->{timer} %>
+            <a href="/taskbot/item/<%= $item->{taskid} %>?scheduled=<%= $item->{scheduled} - 24*60*60 %>&redir=list">-</a>
+            <a href="/taskbot/item/<%= $item->{taskid} %>?scheduled=<%= $item->{scheduled} + 24*60*60 %>&redir=list">+</a>
+            <% } %>
+          </td>
+          <td width='8%' align="right"><input type="text" name="cmd_<%= $item->{taskid} %>" size="8" style="background-color: <%= $item->{color} %>; border: 1px solid black"></td>
+
+          <td align="right"><a href="/taskbot/item/<%= $item->{taskid} %>?status=DONE&recurrence=<%= $item->{recurrence} %>&redir=list"><%= $item->{status} %></a></td>
+          <td align="right" width='6%'>
+            <%=  $item->{scheduled} ? strftime( '%l:%M %p', localtime( $item->{scheduled} ) ) : ""  %>
+          </td>
+          <td align="right" width='3%'><%= $item->{duration} %></td>
+          <td><a href='/taskbot/item/<%= $item->{taskid} %>'><%= $item->{title} %></a></td>
+          <td width='1%'><a href='/taskbot/edit/<%= $item->{taskid} %>'>-&gt;</a></td>
           <td width='3%'>
             <%= $item->{priority} %>
             <a href='/taskbot/item/<%= $item->{taskid} %>?priority=<%= $item->{priority} - 5 %>&redir=list'>-</a>
-            <a href='/taskbot/item/<%= $item->{taskid} %>?priority=<%= $item->{priority} + 5 %>&redir=list'>+</a></td>
-          <td width='1%'><a href='/taskbot/edit/<%= $item->{taskid} %>'>-&gt;</a></td>
-          <td><a href='/taskbot/item/<%= $item->{taskid} %>'><%= $item->{title} %></a></td>
-          <td width='3%'><%= $item->{duration} %></td>
-          <td width='8%' bgcolor="<%= $item->{scheduled_color} %>">
-            <%=  $item->{scheduled} ? strftime( '%Y-%m-%d %a %H:%M', localtime( $item->{scheduled} ) ) : ""  %>
-            <a href="/taskbot/item/<%= $item->{taskid} %>?scheduled=<%= $item->{scheduled} - 24*60*60 %>&redir=list">-</a>
-            <a href="/taskbot/item/<%= $item->{taskid} %>?scheduled=<%= $item->{scheduled} + 24*60*60 %>&redir=list">+</a>
+            <a href='/taskbot/item/<%= $item->{taskid} %>?priority=<%= $item->{priority} + 5 %>&redir=list'>+</a>
           </td>
           <td width='1%'><%= $item->{recurrence} %></td>
+          <td align="center" width='10%'><% for my $cat ( split /\./, $item->{category} ) { %><a href="?category=<%= $cat %>"><%= $cat %></a> <% } %></td>
+          <td width='6%' bgcolor="<%= $item->{lastupdate_color} %>"><%=  $item->{age} %></td>
+
+          
         </tr>
         <% } %>
       </tbody>
       <tfoot></tfoot>
     </table>
+
+    <input type="image" src="/images/wubot.png" border=0 height=32 width=32 alt="submit">
+    </form>
+
   </body>
 </html>
