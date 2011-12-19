@@ -12,15 +12,14 @@ use YAML::XS;
 
 use App::Wubot::Logger;
 use App::Wubot::SQLite;
-use App::Wubot::Util::Command;
 
 =head1 NAME
 
-App::Wubot::Util::Command
+App::Wubot::Util::CommandQueue
 
 =head1 SYNOPSIS
 
-    use App::Wubot::Util::Command;
+    use App::Wubot::Util::CommandQueue;
 
 =head1 DESCRIPTION
 
