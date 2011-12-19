@@ -246,7 +246,7 @@ sub monitor {
 
     # get a list of all items that are marked for download but not added to queue
     $self->sql->select( { tablename => 'recorded',
-                          where     => 'download = 1 AND enqueued IS NULL',
+                          where     => 'download = 1 AND ( enqueued IS NULL OR enqueued = "" )',
                           schema    => 'tivo.recorded',
                           callback  => sub {
                               my $item = shift;

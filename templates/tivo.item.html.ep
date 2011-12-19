@@ -104,6 +104,13 @@
           </td>
         </tr>
 
+        <tr>
+          <td width="8%">enqueued</td>
+          <td>
+            <input type="text" name="enqueued" size="64" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{enqueued} %>">
+          </td>
+        </tr>
+
       </table>
 
       </td></tr></table>

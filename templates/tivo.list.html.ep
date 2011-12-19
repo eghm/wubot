@@ -76,9 +76,8 @@
           <td width='3%'><%= $item->{size} %></td>
           <td width='8%' bgcolor="<%= $item->{recorded_color} %>"><%=  $item->{recorded} ? strftime( '%Y-%m-%d %H:%M', localtime( $item->{recorded} ) ) : ""  %></td>
           <td width='1%'><%= $item->{hd} %></td>
-          <td width='3%'><%= $item->{downloaded} %></td>
           <td width='3%'><%= $item->{duration} %></td>
-          <td width='8%' bgcolor="<%= $item->{lastupdate_color} %>"><%=  $item->{lastupdate} ? strftime( '%Y-%m-%d %H:%M', localtime( $item->{lastupdate} ) ) : ""  %></td>
+          <td width='8%'><%=  $item->{lastupdate} ? strftime( '%Y-%m-%d %H:%M', localtime( $item->{lastupdate} ) ) : ""  %></td>
 
         </tr>
         <% } %>

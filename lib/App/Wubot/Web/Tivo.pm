@@ -62,7 +62,7 @@ sub update_tivo {
 
     my $item = { tivoid => $tivoid };
 
-    for my $flag ( qw( color download errmsg downloaded decoded library ) ) {
+    for my $flag ( qw( color download errmsg downloaded decoded library enqueued ) ) {
 
         if ( defined $self->param( $flag ) ) {
             $item->{$flag} = $self->param( $flag );
@@ -128,7 +128,7 @@ sub list {
     $sql->select( $query );
 
     $self->stash( items => \@items );
-    $self->stash( headers => [ qw( mark dl enc lib name episode epnum size recorded hd dl duration updated ) ] );
+    $self->stash( headers => [ qw( mark dl enc lib name episode epnum size recorded hd duration updated ) ] );
     $self->stash( status  => $lastupdate_h );
 
     $self->render( template => 'tivo.list' );
