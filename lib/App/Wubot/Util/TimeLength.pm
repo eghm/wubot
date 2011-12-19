@@ -3,6 +3,8 @@ use Moose;
 
 # VERSION
 
+use POSIX;
+
 use App::Wubot::Logger;
 
 =head1 NAME
@@ -122,6 +124,7 @@ sub get_human_readable {
 
     my $seconds = $self->get_seconds( $time );
     my $orig_seconds = $seconds;
+    my $abs_seconds  = abs( $seconds );
 
     return '0s' unless $seconds;
 
@@ -137,13 +140,13 @@ sub get_human_readable {
     for my $time ( qw( y M w d h m s ) ) {
 
         if ( $time eq "s" ) {
-            next TIME if $orig_seconds > $constants->{h};
+            next TIME if $abs_seconds > $constants->{h};
         }
         elsif ( $time eq "m" ) {
-            next TIME if $orig_seconds > $constants->{d};
+            next TIME if $abs_seconds > $constants->{d};
         }
         elsif ( $time eq "h" ) {
-            next TIME if $orig_seconds > $constants->{w};
+            next TIME if $abs_seconds > $constants->{w};
         }
 
         my $num_seconds = $constants->{ $time };
@@ -215,7 +218,7 @@ sub get_age_color {
     #                'y' => [ 200,   0,   0,    0,   0,   0, 2 ],
     #            };
 
-    my $colors = { 'h' => [ 255,   0, 255,  108, 113, 196    ],
+    my $colors = { 'h' => [ 204,   0, 153,  108, 113, 196    ],
                    'd' => [ 108, 113, 196,   38, 139, 210    ],
                    'w' => [  38, 139, 210,  133, 153,   0    ],
                    'M' => [ 133, 153,   0,  181, 137,   0    ],
