@@ -4,7 +4,7 @@ use Moose;
 # VERSION
 
 # solarized color schema: http://ethanschoonover.com/solarized
-my $pretty_colors = { pink      => '#FF33FF',
+my $pretty_colors = { pink      => '#CC0099',
                       yellow    => '#b58900',
                       orange    => '#cb4b16',
                       red       => '#dc322f',
@@ -24,6 +24,7 @@ my $pretty_colors = { pink      => '#FF33FF',
                       brwhite   => '#fdf6e3',
                       purple    => 'magenta',
                       dark      => 'black',
+                      default   => 'black',
                   };
 
 # color aliases
@@ -36,6 +37,8 @@ for my $color ( sort keys %{ $pretty_colors } ) {
 
 sub get_color {
     my ( $self, $color ) = @_;
+
+    return $pretty_colors->{default} unless $color;
 
     if ( $pretty_colors->{$color} ) {
         return $pretty_colors->{$color};
