@@ -26,12 +26,18 @@ use App::Wubot::Util::WebUtil;
 
 my $util    = App::Wubot::Util::WebUtil->new( { type => 'taskbot',
                                                 idname => 'taskid',
-                                                fields => [ qw( cmd color title body status priority duration category recurrence deadline scheduled ) ],
+                                                fields => [ qw( cmd color title link body status priority duration category recurrence scheduled ) ],
                                             } );
 
 my $taskbot      = App::Wubot::Util::Taskbot->new();
 my $colors       = App::Wubot::Util::Colors->new();
 my $timelength   = App::Wubot::Util::TimeLength->new( { space => 1 } );
+
+my $notify_file    = join( "/", $ENV{HOME}, "wubot", "sqlite", "notify.sql" );
+my $sqlite_notify  = App::Wubot::SQLite->new( { file => $notify_file } );
+
+my $is_null = "IS NULL";
+my $is_not_null = "IS NOT NULL";
 
 my $task_defaults = { color => 'blue',
                       status => 'TODO',
@@ -43,10 +49,13 @@ sub get_submit_item_postproc {
 
     return unless defined $item;
 
-    for my $param ( qw( deadline scheduled ) ) {
+    for my $param ( qw( scheduled ) ) {
         my $value = $item->{$param};
-        next unless $value;
-        if ( $value =~ m|^\d+$| ) {
+        next unless defined $value;
+        if ( ! $value ) {
+            $item->{$param} = undef;
+        }
+        elsif ( $value =~ m|^\d+$| ) {
             $item->{$param} = $value;
         } else {
             $item->{ $param } = UnixDate( ParseDate( $value ), "%s" );
@@ -99,8 +108,25 @@ sub cmd {
                 $item->{duration} = $1;
             }
         }
+        elsif ( $cmd =~ m/r.(\d+\w?)/ ) {
+            if ( $1 eq "0" ) {
+                $item->{recurrence} = undef;
+            }
+            else {
+                $item->{recurrence} = $1;
+            }
+        }
+        elsif ( $cmd eq "todo" ) {
+            $item->{status} = "TODO";
+        }
         elsif ( $cmd eq "done" ) {
             $item->{status} = "DONE";
+        }
+        elsif ( $cmd =~ m/^c.(.*)$/ ) {
+            $item->{category} = $1;
+        }
+        elsif ( $colors->get_color( $cmd ) ne $cmd ) {
+            $item->{color} = $cmd;
         }
     }
 
@@ -119,9 +145,6 @@ sub update_task_preproc {
 
             my $next = $timelength->get_seconds( $task_h->{recurrence} );
 
-            if ( $task_orig->{deadline} ) {
-                $task_h->{deadline} = $task_orig->{deadline} + $next;
-            }
             if ( $task_orig->{scheduled} ) {
                 $task_h->{scheduled} = $task_orig->{scheduled} + $next;
             }
@@ -169,13 +192,6 @@ sub item {
     }
     else {
         $item->{scheduled_color} = $item->{display_color};
-    }
-
-    if ( $item->{deadline} ) {
-        $item->{deadline_color} = $timelength->get_age_color( abs( $now - $item->{deadline} ) );
-    }
-    else {
-        $item->{deadline_color} = $item->{display_color};
     }
 
     $self->stash( item => $item );
@@ -229,7 +245,7 @@ sub tasks {
         $self->cmd( $id, $cmd );
     }
 
-    $self->stash( 'headers', [qw/timer cmd status time dur title launch priority rec category lastupdate/ ] );
+    $self->stash( 'headers', [qw/timer cmd status time dur title ed link priority rec category lastupdate/ ] );
 
     my $now = time;
     my $start = $now + 15*60;
@@ -237,39 +253,34 @@ sub tasks {
     my @tasks;
 
     my $query = { tablename => 'taskbot',
-                  order     => [ 'deadline', 'scheduled', 'priority DESC', 'lastupdate DESC' ],
-                  limit     => 100,
+                  order     => [ 'scheduled', 'priority DESC', 'lastupdate DESC' ],
+                  limit     => 200,
               };
-
-    $query->{where}->{status}    = "TODO";
 
     my $status = $util->check_session( $self, 'status' );
     if ( $status ) {
-        $query->{where}->{status} = uc( $status );
+        unless ( $status eq "any" ) {
+            $query->{where}->{status} = uc( $status );
+        }
+    }
+    else {
+        $query->{where}->{status}    = "TODO";
     }
 
     my $category = $util->check_session( $self, 'category' );
     if ( $category ) {
-        $query->{where}->{category} = { LIKE => "%" . $category . "%" };
+        if ( $category eq "null" ) {
+            $query->{where}->{category} = [ undef, "" ];
+        }
+        elsif ( $category eq "all" ) {
+            # no 'where' restricting category
+        }
+        else {
+            $query->{where}->{category} = $category;
+        }
     }
 
     my $is_not_null = "IS NOT NULL";
-
-    my $deadline = $util->check_session( $self, 'deadline' );
-    if ( $deadline eq "false" ) {
-        $query->{where}->{deadline}  = undef;
-    }
-    elsif ( $deadline eq "true" ) {
-        $query->{where}->{deadline}  = \$is_not_null;
-    }
-    elsif ( $deadline eq "future" ) {
-        $query->{where}->{deadline}  = { ">=" => $now };
-        $query->{order} = [ 'deadline', 'scheduled', 'priority DESC', 'lastupdate DESC' ];
-    }
-    elsif ( $deadline eq "past" ) {
-        $query->{where}->{deadline}  = { "<=" => $start };
-        $query->{order} = [ 'deadline', 'scheduled', 'priority DESC', 'lastupdate DESC' ];
-    }
 
     my $scheduled = $util->check_session( $self, 'scheduled' );
     if ( $scheduled eq "false" ) {
@@ -277,15 +288,15 @@ sub tasks {
     }
     elsif ( $scheduled eq "true" ) {
         $query->{where}->{scheduled}  = \$is_not_null;
-        $query->{order} = [ 'scheduled ASC', 'deadline', 'priority DESC', 'lastupdate DESC' ];
+        $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
     }
     elsif ( $scheduled eq "future" ) {
         $query->{where}->{scheduled}  = { ">=" => $now };
-        $query->{order} = [ 'scheduled ASC', 'deadline', 'priority DESC', 'lastupdate DESC' ];
+        $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
     }
     elsif ( $scheduled eq "past" ) {
         $query->{where}->{scheduled}  = { "<=" => $now };
-        $query->{order} = [ 'scheduled ASC', 'deadline', 'priority DESC', 'lastupdate DESC' ];
+        $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
     }
 
     $query->{callback} = sub {
@@ -322,23 +333,43 @@ sub tasks {
             $task->{scheduled_color} = $task->{color};
         }
 
-        if ( $task->{deadline} ) {
-            if ( $now > $task->{deadline} ) {
-                $task->{deadline_color} = $colors->get_color( "red" );
-            }
-            else {
-                $task->{deadline_color} = $timelength->get_age_color( abs( $now - $task->{deadline} ) );
-            }
-        } else {
-            $task->{deadline_color} = $task->{color};
-        }
-
         push @tasks, $task;
     };
 
     $taskbot->sql->select( $query );
 
     $self->stash( body_data => \@tasks );
+
+    my @categories;
+    $taskbot->sql->select( { fields => 'category, max(lastupdate) as lastupdate, count(*) as count',
+                             tablename => 'taskbot',
+                             group => 'category',
+                             where => { status => 'TODO' },
+                             order => 'lastupdate DESC, count DESC',
+                             callback => sub {
+                                 my $row = shift;
+                                 $row->{color} = $timelength->get_age_color( $now - $row->{lastupdate} );
+                                 if ( $row->{category} eq "" ) {
+                                     $row->{category} = "null";
+                                 }
+                                 push @categories, $row;
+                             },
+                         } );
+    $self->stash( 'categories', \@categories );
+
+    my @mailboxes;
+    $sqlite_notify->select( { fields => 'mailbox, lastupdate, count(*) as count',
+                              tablename => 'notifications',
+                              group => 'mailbox',
+                              order => 'lastupdate DESC, count DESC',
+                              where => { seen => \$is_null },
+                              callback => sub {
+                                  my $row = shift;
+                                  $row->{color} = $timelength->get_age_color( $now - $row->{lastupdate} );
+                                  push @mailboxes, $row;
+                              },
+                          } );
+    $self->stash( 'mailboxes', \@mailboxes );
 
     $self->render( template => 'taskbot.list' );
 
@@ -446,89 +477,6 @@ sub ical {
 
     $self->render( template => 'calendar', format => 'ics', handler => 'epl' );
 }
-
-
-# sub tasks {
-#     my $self = shift;
-
-#     my $due = $self->param( 'due' );
-#     if ( $due ) {
-#         $self->session( due => 1 );
-#         $self->redirect_to( "/tasks" );
-#     }
-#     elsif ( defined $due ) {
-#         $self->session( due => 0 );
-#         $self->redirect_to( "/tasks" );
-#     }
-#     else {
-#         $due = $self->session( 'due' );
-#     }
-
-#     my $tag = $self->param( 'tag' );
-#     if ( $tag ) {
-#         $self->session( tag => $tag );
-#         $self->redirect_to( "/tasks" );
-#     }
-#     else {
-#         $tag = $self->session( 'tag' );
-#     }
-#     if ( $tag eq "none" ) {
-#         undef $tag;
-#     }
-
-#     my @tasks = $taskutil->get_tasks( $due, $tag );
-
-#     my $now = time;
-
-#     for my $task ( @tasks ) {
-
-#         $task->{lastupdate_color} = $timelength->get_age_color( $now - $task->{lastupdate} );
-
-#         $task->{lastupdate} = strftime( "%Y-%m-%d %H:%M", localtime( $task->{lastupdate} ) );
-
-#         if ( $colors->get_color( $task->{color} ) ) {
-#             $task->{color} = $colors->get_color( $task->{color} );
-#             $task->{deadline_color} = $task->{color};
-#             $task->{scheduled_color} = $task->{color};
-#         }
-
-#         for my $type ( qw( deadline scheduled ) ) {
-#             next unless $task->{"$type\_utime"};
-
-#             my $diff = abs( $task->{"$type\_utime"} - $now );
-#             if ( $diff < 3600 ) {
-#                 $task->{color} = "green";
-#             } elsif ( $diff < 900 ) {
-#                 $task->{color} = "pink";
-#             }
-#             $task->{$type} = $task->{"$type\_text"};
-
-#             $task->{"$type\_color"} = $timelength->get_age_color( $now - $task->{"$type\_utime"} );
-#         }
-
-#         if ( $task->{duration} ) {
-#             $task->{emacs_link} = join( "%20", $task->{duration}, $task->{title} );
-#         }
-#         else {
-#             $task->{emacs_link} = $task->{title};
-#         }
-#         $task->{emacs_link} =~ s|\/|__SLASH__|g;
-#         $task->{emacs_link} = uri_escape( $task->{emacs_link} );
-#     }
-
-#     $self->stash( 'headers', [qw/count lastupdate tag file title priority scheduled deadline/ ] );
-
-#     my $tagcolors = { 'null' => 'black', chores => 'blue', work => 'orange', geektank => 'purple' };
-#     for my $tag ( keys %{ $tagcolors } ) {
-#         $tagcolors->{$tag} = $colors->get_color( $tagcolors->{$tag} );
-#     }
-#     $self->stash( 'tagcolors', $tagcolors );
-
-#     $self->stash( 'body_data', \@tasks );
-
-#     $self->render( template => 'tasks' );
-
-# }
 
 1;
 

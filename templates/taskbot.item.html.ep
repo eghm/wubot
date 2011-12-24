@@ -52,6 +52,14 @@
           <td width="8%">category</td>
           <td>
             <input type="text" name="category" size="32" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{category} %>">
+            <% for my $cat ( split /\./, $item->{category} ) { %><a href="/taskbot/list?category=<%= $cat %>"><%= $cat %></a> <% } %>
+          </td>
+        </tr>
+
+        <tr>
+          <td width="8%">link</td>
+          <td>
+            <input type="text" name="link" size="64" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{link} %>">
           </td>
         </tr>
 
@@ -59,13 +67,6 @@
           <td width="8%">scheduled</td>
           <td>
             <input type="text" name="scheduled" size="24" style="background-color: <%= $item->{scheduled_color} %>; border: 1px solid black" value="<%= $item->{scheduled} ? strftime( '%Y-%m-%d %H:%M', localtime( $item->{scheduled} ) ) : "" %>">
-          </td>
-        </tr>
-
-        <tr>
-          <td width="8%">deadline</td>
-          <td>
-            <input type="text" name="deadline" size="24" style="background-color: <%= $item->{deadline_color} %>; border: 1px solid black" value="<%=  $item->{deadline} ? strftime( '%Y-%m-%d %H:%M', localtime( $item->{deadline} ) ) : ""  %>">
           </td>
         </tr>
 

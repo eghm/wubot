@@ -114,7 +114,7 @@ sub check_schedule {
 
     $self->sql->select( { tablename => 'taskbot',
                           order     => [ 'scheduled', 'priority DESC', 'lastupdate DESC' ],
-                          where     => { scheduled => { '>=' => $start, '<=' => $end } },
+                          where     => { status => 'TODO', scheduled => { '>=' => $start, '<=' => $end } },
                           limit     => $limit,
                           callback  => sub {
                               my $row = shift;
