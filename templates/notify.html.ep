@@ -28,6 +28,7 @@
 
     <table width='100%'>
       <tr valign='top'>
+
         <td width='50' class="mailboxes">
           <table>
             <% for my $mailbox ( @{ $mailboxes } ) { %>
@@ -79,7 +80,7 @@
             <% if ( $row->{link} ) { %>
             <a href="<%= $row->{link} %>">
             <% } %>
-              <img height="24" width="24" src="/images/<%= $row->{icon} %>">
+              <img height="18" width="18" src="/images/<%= $row->{icon} %>">
             <% if ( $row->{link} ) { %>
             </a>
             <% } %>

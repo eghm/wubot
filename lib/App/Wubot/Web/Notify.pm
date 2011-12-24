@@ -17,6 +17,7 @@ use App::Wubot::SQLite;
 use App::Wubot::Util::Colors;
 use App::Wubot::Util::TagPredict;
 use App::Wubot::Util::TimeLength;
+use App::Wubot::Util::Taskbot;
 
 =head1 NAME
 
@@ -157,6 +158,7 @@ my $timelength = App::Wubot::Util::TimeLength->new();
 my $notify_file    = join( "/", $ENV{HOME}, "wubot", "sqlite", "notify.sql" );
 my $sqlite_notify  = App::Wubot::SQLite->new( { file => $notify_file } );
 
+my $taskbot      = App::Wubot::Util::Taskbot->new();
 
 =head1 SUBROUTINES/METHODS
 
@@ -393,7 +395,7 @@ sub notify {
     $sqlite_notify->select( { fields => 'mailbox, lastupdate, count(*) as count',
                               tablename => 'notifications',
                               group => 'mailbox',
-                              order => 'count DESC, lastupdate DESC',
+                              order => 'lastupdate DESC, count DESC',
                               where => { seen => \$is_null },
                               callback => sub {
                                   my $row = shift;
@@ -517,7 +519,7 @@ sub item {
     $sqlite_notify->select( { fields => 'mailbox, lastupdate, count(*) as count',
                               tablename => 'notifications',
                               group => 'mailbox',
-                              order => 'count DESC, lastupdate DESC',
+                              order => 'lastupdate DESC, count DESC',
                               where => { seen => \$is_null },
                               callback => sub {
                                   my $row = shift;
