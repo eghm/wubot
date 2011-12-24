@@ -48,11 +48,13 @@ if ( -r $cache_file ) {
 
 my $messenger = App::Wubot::LocalMessageStore->new( { novacuum => 1 } );
 
-my $check = App::Wubot::Check->new( { key           => "$plugin-$key",
-                                      class         => "App::Wubot::Plugin::$plugin",
-                                      reactor_queue => $messenger,
-                                      cache_file    => $cache_file,
-                                  } );
+my $check_h = { key           => "$plugin-$key",
+                class         => "App::Wubot::Plugin::$plugin",
+                reactor_queue => $messenger,
+                cache_file    => $cache_file,
+            };
+
+my $check = App::Wubot::Check->new( $check_h );
 
 my $j = AnyEvent->condvar;
 
@@ -65,6 +67,8 @@ eval {                          # try
     print YAML::XS::Dump $config;
 
     my $results = $check->check( $config );
+
+    print "RESULTS\n";
     print YAML::XS::Dump $results;
     1;
 } or do {                       # catch
