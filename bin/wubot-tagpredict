@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 
+use DB_File;
 use FindBin;
 use HTML::Strip;
 use YAML;
@@ -25,7 +26,27 @@ my $sqlite_notify  = App::Wubot::SQLite->new( { file => $notify_file } );
 if ( grep /-index/, @ARGV ) {
     reindex();
 }
-else {
+if ( grep /-common/, @ARGV ) {
+
+    my %counts;
+
+    foreach ( keys %{ $predict->db } ) {
+        my $key = $_;
+        next unless $key =~ m|^count_tag_word:_TOTAL_:|;
+        next if $key =~ m|_TOTAL_$|;
+
+        $counts{$key} = $predict->{db}->{$key};
+    }
+
+    my $limit = 50;
+    for my $name ( sort { $predict->{db}->{$b} <=> $predict->{db}->{$a} } keys %counts ) {
+        last unless $limit;
+        $limit--;
+        print "$name: $counts{$name}\n";
+    }
+
+}
+if ( scalar @ARGV && $ARGV[0] =~ m|^\d+$| ) {
     get_suggested_tags();
 }
 
@@ -38,11 +59,9 @@ sub get_suggested_tags {
     print $item->{subject};
     print "\n\n";
 
-    my $words = $predict->count_words( $item->{subject}, $item->{body} );
+    my $words = $predict->count_words( $item->{subject}, $item->{subject_text}, $item->{body} );
 
-    my $recs = $predict->predict_tags( $words, { min => .0005 } );
-
-    print "\n\n";
+    my $recs = $predict->predict_tags( $words, { limit => 15 } );
 
     for my $tag ( sort { $recs->{$b} <=> $recs->{$a} } keys %{ $recs } ) {
         printf( "%10s  %0.3f\n", $tag, $recs->{$tag} );
@@ -71,8 +90,9 @@ sub reindex {
 
     my $count = 0;
     for my $id ( sort keys %ids ) {
-
         $count++;
+
+        if ( $count % 1000 == 0 ) { print "$count\n"; }
 
         my @tags;
         $sqlite_notify->select( { tablename => 'tags',
@@ -90,20 +110,15 @@ sub reindex {
                                   callback  => sub {
                                       my $row = shift;
 
-                                      my $subject = $row->{subject};
+                                      my @content;
+                                      push @content, $row->{subject_text};
+                                      push @content, $row->{body};
 
-                                      $subject = $hs->parse( $subject );
-
-                                      my $body = $row->{body};
-                                      if ( $body ) {
-                                          $body = $hs->parse( $row->{body} );
-                                      }
-
-                                      my $words = $predict->count_words( $subject, $body );
+                                      my $words = $predict->count_words( @content );
 
                                       my $wordcount = scalar keys %{ $words };
 
-                                      $logger->info( "[$count/$total]: $row->{id} = $wordcount: $subject" );
+                                      $logger->info( "[$count/$total]: $row->{id} = $wordcount: $row->{subject}" );
                                       $logger->info( "   ", join( ", ", @tags ) );
 
                                       $predict->store( $words, @tags );
@@ -112,7 +127,4 @@ sub reindex {
                               } );
 
     }
-
-    # get keys in wordfreq table, delete any that no longer have tags applied
-
 }
