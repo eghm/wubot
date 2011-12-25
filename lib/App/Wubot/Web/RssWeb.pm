@@ -1,4 +1,4 @@
-package App::Wubot::Web::Rss;
+package App::Wubot::Web::RssWeb;
 use strict;
 use warnings;
 
@@ -155,7 +155,7 @@ __END__
 
 =head1 NAME
 
-App::Wubot::Web::Rss - serves outgoing wubot RSS feeds
+App::Wubot::Web::RssWeb - serves outgoing wubot RSS feeds
 
 =head1 CONFIGURATION
 

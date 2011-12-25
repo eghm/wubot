@@ -1,4 +1,4 @@
-package App::Wubot::Web::Graphs;
+package App::Wubot::Web::GraphsWeb;
 use strict;
 use warnings;
 
@@ -43,7 +43,7 @@ __END__
 
 =head1 NAME
 
-App::Wubot::Web::Graphs - web interface for wubot graphs
+App::Wubot::Web::GraphsWeb - web interface for wubot graphs
 
 =head1 CONFIGURATION
 

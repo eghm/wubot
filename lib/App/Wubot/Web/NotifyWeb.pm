@@ -1,4 +1,4 @@
-package App::Wubot::Web::Notify;
+package App::Wubot::Web::NotifyWeb;
 use strict;
 use warnings;
 
@@ -21,7 +21,7 @@ use App::Wubot::Util::Taskbot;
 
 =head1 NAME
 
-App::Wubot::Web::Notify - web interface for wubot notifications
+App::Wubot::Web::NotifyWeb - web interface for wubot notifications
 
 =head1 CONFIGURATION
 

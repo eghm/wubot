@@ -1,4 +1,4 @@
-package App::Wubot::Web::Taskbot;
+package App::Wubot::Web::TaskbotWeb;
 use strict;
 use warnings;
 
@@ -434,7 +434,7 @@ __END__
 
 =head1 NAME
 
-App::Wubot::Web::Tasks - wubot tasks web interface
+App::Wubot::Web::TaskbotWeb - wubot tasks web interface
 
 =head1 CONFIGURATION
 

@@ -24,11 +24,13 @@ sub startup {
 
     for my $plugin ( keys %{ $config->{plugins} } ) {
 
+        my $plugin_name = join( "", ucfirst( $plugin ), "Web" );
+
         for my $route ( keys %{ $config->{plugins}->{$plugin} } ) {
 
             my $method = $config->{plugins}->{$plugin}->{$route};
 
-            $r->route( $route )->to( "$plugin#$method" );
+            $r->route( $route )->to( "$plugin_name#$method" );
 
         }
     }

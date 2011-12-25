@@ -1,4 +1,4 @@
-package App::Wubot::Web::Tv;
+package App::Wubot::Web::TvWeb;
 use strict;
 use warnings;
 
@@ -474,7 +474,7 @@ __END__
 
 =head1 NAME
 
-App::Wubot::Web::Tv - wubot tv web interface
+App::Wubot::Web::TvWeb - wubot tv web interface
 
 =head1 CONFIGURATION
 

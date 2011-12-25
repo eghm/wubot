@@ -1,4 +1,4 @@
-package App::Wubot::Web::Tivo;
+package App::Wubot::Web::TivoWeb;
 use strict;
 use warnings;
 
