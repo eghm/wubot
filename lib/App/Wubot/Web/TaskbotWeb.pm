@@ -60,6 +60,17 @@ sub get_submit_item_postproc {
     }
 }
 
+sub get_item_postproc {
+    my ( $item, $id ) = @_;
+
+    my $body = $taskbot->read_body( $id );
+    if ( $body ) {
+        $item->{body} = $body;
+    }
+
+    return $item;
+}
+
 sub cmd {
     my ( $self, $taskid, $cmdlist ) = @_;
 
