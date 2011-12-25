@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>wubot: <%= $item->{subject_text} %></title>
+    <title>wubot: <%= $item->subject_text %></title>
     <%= include 'css' %>
   </head>
   <body bgcolor=black>
@@ -20,26 +20,26 @@
 
       <form method="post">
 
-      <table width="100%" bgcolor="<%= $item->{color} %>">
+      <table width="100%" bgcolor="<%= $item->display_color %>">
         <tr>
           <td width="8%">id</td>
-          <td><%= $item->{id} %> | <a href="?edit=1">edit</a></td>
+          <td><%= $item->id %> | <a href="?edit=1">edit</a></td>
         </tr>
 
         <tr>
           <td>icon</td>
-          <td><img width="64" height="64" src="/images/<%= $item->{icon} %>"></td>
+          <td><img width="64" height="64" src="/images/<%= $item->icon %>"></td>
         </tr>
 
         <tr>
           <td>username</td>
-          <td><%= $item->{username} %></td>
+          <td><%= $item->username %></td>
         </tr>
 
         <tr>
           <td>seen</td>
           <td>
-            <% if ( $item->{seen} ) { %>
+            <% if ( $item->seen ) { %>
             marked seen
             <% } else { %>
             <a href="?cmd=r">seen</a>
@@ -51,21 +51,21 @@
           <td>subject</td>
           <td>
             <% if ( $edit ) { %>
-              <textarea name="subject" rows="4" cols="120" style="background-color: <%= $item->{color} %>; border: 0px"><%= $item->{subject_text} %></textarea>
+              <textarea name="subject" rows="4" cols="120" style="background-color: <%= $item->display_color %>; border: 0px"><%= $item->subject_text %></textarea>
             <% } else { %>
-              <%= $item->{subject_text} %>
+              <%= $item->subject_text %>
             <% } %>
           </td>
         </tr>
 
         <tr>
           <td>score</td>
-          <td><%= $item->{score} %></td>
+          <td><%= $item->score %></td>
         </tr>
 
         <tr>
           <td>cmd</td>
-          <td><input type="text" name="cmd" size="5" style="background-color: <%= $item->{color} %>; border: 1px solid black"></td>
+          <td><input type="text" name="cmd" size="5" style="background-color: <%= $item->display_color %>; border: 1px solid black"></td>
         </tr>
 
         <tr>
@@ -88,14 +88,14 @@
         <tr>
           <td>mailbox</td>
           <td>
-            <a href="/notify?mailbox=<%= $item->{mailbox} %>"><%= $item->{mailbox} %></a>
+            <a href="/notify?mailbox=<%= $item->mailbox %>"><%= $item->mailbox %></a>
           </td>
         </tr>
 
         <tr>
           <td>key</td>
           <td>
-            <a href="/notify?mailbox=<%= $item->{key} %>"><%= $item->{key} %></a>
+            <a href="/notify?mailbox=<%= $item->key %>"><%= $item->key %></a>
           </td>
         </tr>
 
@@ -103,34 +103,34 @@
           <td>body</td>
           <td>
             <% if ( $edit ) { %>
-              <textarea name="body" rows="40" cols="120" style="background-color: <%= $item->{color} %>; border: 0px"><%= $item->{body} %></textarea>
+              <textarea name="body" rows="40" cols="120" style="background-color: <%= $item->display_color %>; border: 0px"><%= $item->body %></textarea>
             <% } else { %>
-              <table width="50%"><tr><td style="border-width: 0px 0px 0 0;"><pre><%= $item->{body} %></pre></td></tr></table>
+              <table width="50%"><tr><td style="border-width: 0px 0px 0 0;"><pre><%= $item->body %></pre></td></tr></table>
             <% } %>
           </td>
         </tr>
 
-        <% if ( $image ) { %>
+        <% if ( $item->image ) { %>
         <tr>
           <td>image</td>
-          <td><img src="<%= $image %>"></td>
+          <td><img src="<%= $item->image %>"></td>
         </tr>
         <% } %>
 
         <tr>
           <td>link</td>
-          <td><a href="<%= $item->{link} %>"><%= $item->{link} %></td>
+          <td><a href="<%= $item->link %>"><%= $item->link %></td>
         </tr>
 
         <tr>
           <td>urls</td>
           <td>
-            <% for my $url ( @$urls ) { %>
+            <% for my $url ( @{ $item->urls } ) { %>
             <a href='<%= $url %>'><%= $url %></a><br>
             <% } %>
           </td>
         </tr>
-      
+
       </table>
 
       </td></tr></table>

@@ -6,11 +6,8 @@ use warnings;
 
 use Mojo::Base 'Mojolicious::Controller';
 
-use HTML::Strip;
 use Lingua::Translate;
 use Log::Log4perl;
-use Text::Wrap;
-use URI::Find;
 
 use App::Wubot::Logger;
 use App::Wubot::SQLite;
@@ -18,6 +15,7 @@ use App::Wubot::Util::Colors;
 use App::Wubot::Util::TagPredict;
 use App::Wubot::Util::TimeLength;
 use App::Wubot::Util::Taskbot;
+use App::Wubot::Web::Obj::NotifyObj;
 
 =head1 NAME
 
@@ -301,13 +299,8 @@ sub notify {
         $where = { id => \@ids };
     }
 
-    unless ( $self->param('collapse') ) {
-        $expand = 1;
-    }
-
     my @messages;
     my @ids;
-    my $collapse;
 
   MESSAGE:
     for my $message ( $sqlite_notify->select( { tablename => 'notifications',
@@ -318,58 +311,11 @@ sub notify {
 
         push @ids, $message->{id};
 
-        unless ( $message->{mailbox} ) { $message->{mailbox} = 'null' }
-
-        utf8::decode( $message->{subject} );
-        utf8::decode( $message->{subject_text} );
-        utf8::decode( $message->{username} );
-
-        my $coalesce = $message->{mailbox};
-        if ( ! $expand ) {
-            if ( $collapse->{ $coalesce } ) {
-                $collapse->{ $coalesce }->{$message->{id}} = 1;
-                next MESSAGE;
-            }
-            else {
-                $collapse->{ $coalesce }->{$message->{id}} = 1;
-            }
-        }
-
-        push @messages, $message;
+        push @messages, App::Wubot::Web::Obj::NotifyObj->new( { db_hash => $message, sql => $sqlite_notify } );
     }
-
-    for my $message ( @messages ) {
-        unless ( $message->{color} ) { $message->{color} = $colors->get_color( 'black' ) }
-
-        if ( $colors->get_color( $message->{color} ) ) {
-            $message->{color} = $colors->get_color( $message->{color} );
-        }
-
-        my $age = 0;
-        if ( $message->{lastupdate} ) {
-            $age = $now - $message->{lastupdate};
-            $message->{age} = $timelength->get_human_readable( $age );
-        }
-        $message->{age_color} = $timelength->get_age_color( $age );
-
-        $message->{icon} =~ s|^.*\/||;
-
-        my $coalesce = $message->{mailbox} || $message->{subject};
-        $message->{count} = scalar keys %{ $collapse->{ $coalesce } || {} };
-        $message->{coalesced} = join( ",", keys %{ $collapse->{ $coalesce } || {} } );
-
-        if ( $message->{key} =~ m|^(.*?)\-(.*)| ) {
-            $message->{key1} = $1;
-            $message->{key2} = $2;
-        }
-        else {
-            $message->{key1} = $message->{key};
-        }
-    }
+    $self->stash( 'body_data', \@messages );
 
     $self->stash( 'headers', [ qw/cmd mailbox key1 key2 seen username icon id subject link score age/ ] );
-
-    $self->stash( 'body_data', \@messages );
 
     $self->stash( 'ids', join( ",", @ids ) );
 
@@ -400,6 +346,7 @@ sub notify {
                               callback => sub {
                                   my $row = shift;
                                   $row->{color} = $timelength->get_age_color( $now - $row->{lastupdate} );
+                                  unless ( $row->{mailbox} ) { $row->{mailbox} = "null" }
                                   push @mailboxes, $row;
                               },
                           } );
@@ -408,7 +355,7 @@ sub notify {
     my $showbody = $self->param('showbody') || 0;
     $self->stash( 'showbody', $showbody );
 
-    $self->render( template => 'notify' );
+    $self->render( template => 'notify.list' );
 
 };
 
@@ -434,6 +381,9 @@ sub item {
                                              where     => { id => $id },
                                       } );
 
+    my $item_obj = App::Wubot::Web::Obj::NotifyObj->new( { id => $id, sql => $sqlite_notify } );
+    $self->stash( item => $item_obj );
+
     my $subject = $self->param( 'subject' );
 
     if ( $self->param('edit') ) {
@@ -457,50 +407,6 @@ sub item {
             $self->redirect_to( "/notify/id/$id" );
         }
     }
-
-    my %urls;
-    my $image;
-    URI::Find->new( sub {
-                        my ( $url ) = @_;
-                        $urls{$url}++;
-                        if ( ! $image && $url =~ m/\.(?:png|gif|jpg)$/i ) { $image = $url }
-                        $url;
-                    }
-                )->find(\$item->{subject});
-    URI::Find->new( sub {
-                        my ( $url ) = @_;
-                        $urls{$url}++;
-                        if ( ! $image && $url =~ m/\.(?:png|gif|jpg)$/i ) { $image = $url }
-                        $url;
-                    }
-                )->find(\$item->{body});
-    for my $url ( keys %urls ) {
-        if ( $url =~ m|doubleclick| ) { delete $urls{$url} }
-    }
-    delete $urls{ $item->{link} };
-    $self->stash( urls => [ sort keys %urls ] );
-
-    $self->stash( image => $image );
-
-    unless ( $item->{color} ) { $item->{color} = 'black' }
-    $item->{color} = $colors->get_color( $item->{color} );
-
-    $item->{icon} =~ s|^.*\/||;
-
-    if ( $item->{body} ) {
-        $item->{body} =~ s|\<br\>|\n\n|g;
-        $Text::Wrap::columns = 80;
-        my $hs = HTML::Strip->new();
-        $item->{body} = $hs->parse( $item->{body} );
-        $item->{body} =~ s|\xA0| |g;
-        $item->{body} = fill( "", "", $item->{body});
-    }
-
-    for my $field ( qw( body subject_text username ) ) {
-        utf8::decode( $item->{$field} );
-    }
-
-    $self->stash( item => $item );
 
     my @tags;
     $sqlite_notify->select( { tablename => 'tags',
@@ -532,7 +438,7 @@ sub item {
                           } );
     $self->stash( 'mailboxes', \@mailboxes );
 
-    $self->render( template => 'item' );
+    $self->render( template => 'notify.item' );
 }
 
 sub _cmd {

@@ -50,77 +50,77 @@
       <tbody>
 
         <% for my $row ( @{ $body_data } ) { %>
-        <tr bgcolor="<%= $row->{color} %>">
+          <tr bgcolor="<%= $row->display_color %>">
 
-          <td><input type="text" name="tag_<%= $row->{id} %>" size="5" style="background-color: <%= $row->{color} %>; border: 1px solid black"></td>
+            <td><input type="text" name="tag_<%= $row->id %>" size="5" style="background-color: <%= $row->display_color %>; border: 1px solid black"></td>
 
           <td>
-            <a href="?mailbox=<%= $row->{mailbox} %>"><%= $row->{mailbox} %></a>
+            <a href="?mailbox=<%= $row->mailbox %>"><%= $row->mailbox %></a>
           </td>
 
           <td>
-            <a href="?plugin=<%= $row->{key1} %>"><%= $row->{key1} %></a>
+            <a href="?plugin=<%= $row->key1 %>"><%= $row->key1 %></a>
           </td>
 
           <td>
-            <a href="?key=<%= $row->{key} %>"><%= $row->{key2} %></a>
+            <a href="?key=<%= $row->key %>"><%= $row->key2 %></a>
           </td>
 
           <td class="seen">
             <% if ( $mailbox ) { %>
-               <a href="?mailbox=<%= $mailbox %>&seen=<%= $row->{id} %>">seen</a>
+               <a href="?mailbox=<%= $mailbox %>&seen=<%= $row->id %>">seen</a>
             <% } else { %>
-               <a href="?seen=<%= $row->{id} %>">seen</a>
+               <a href="?seen=<%= $row->id %>">seen</a>
             <% } %>
           </td>
 
-          <td style="text-align: right"><a href="?username=<%= $row->{username} %>"><%= $row->{username} %></a></td>
+          <td style="text-align: right"><a href="?username=<%= $row->username %>"><%= $row->username %></a></td>
 
           <td>
-            <% if ( $row->{link} ) { %>
-            <a href="<%= $row->{link} %>">
+            <% if ( $row->link ) { %>
+            <a href="<%= $row->link %>">
             <% } %>
-              <img height="18" width="18" src="/images/<%= $row->{icon} %>">
-            <% if ( $row->{link} ) { %>
+              <img height="18" width="18" src="/images/<%= $row->icon %>">
+            <% if ( $row->link ) { %>
             </a>
             <% } %>
           </td>
 
           <td>
-            <% if ( $row->{body} ) { %>
-              <a href="/notify/id/<%= $row->{id} %>">*</a>
+            <% if ( $row->has_body ) { %>
+              <a href="/notify/id/<%= $row->id %>">*</a>
             <% } else { %>
-              <a href="/notify/id/<%= $row->{id} %>">+</a>
+              <a href="/notify/id/<%= $row->id %>">+</a>
             <% } %>
           </td>
 
           <td style="text-align: left">
-            <%= $row->{subject_text} %>
+            <%= $row->subject_text %>
 
-            <% if ( $row->{body} && $showbody ) { %>
+            <% if ( $row->has_body && $showbody ) { %>
               <hr>
-              <%= $row->{body} %>
-              <% if ( $row->{image} ) { %>
+              <%= $row->body %>
+              <% if ( $row->image ) { %>
                 <br>
-                <img src="<%= $row->{image} %>">
+                <img src="<%= $row->image %>">
               <% } %>
             <% } %>
 
           </td>
 
           <td>
-            <% if ( $row->{link} ) { %>
-            <a href="<%= $row->{link} %>">*</a>
+            <% if ( $row->link ) { %>
+            <a href="<%= $row->link %>">*</a>
             <% } %>
           </td>
 
           <td>
-            <% if ( $row->{score} ) { %>
-            <%= $row->{score} %>
+            <% if ( $row->score ) { %>
+            <%= $row->score %>
             <% } %>
           </td>
 
-          <td class="age" bgcolor="<%= $row->{age_color} %>"><%= $row->{age} %></td>
+          <td class="age" bgcolor="<%= $row->lastupdate_color %>"><%= $row->age %></td>
 
         </tr>
         <% } %>
