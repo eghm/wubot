@@ -4,7 +4,9 @@ use Moose;
 # VERSION
 
 use Date::Manip;
+use HTML::Strip;
 use POSIX qw(strftime);
+use Text::Wrap;
 
 use App::Wubot::Logger;
 use App::Wubot::SQLite;
@@ -64,12 +66,25 @@ has 'status_pretty' => ( is => 'ro',
                      );
 
 has 'scheduled' => ( is => 'ro',
-                     isa => 'Maybe[Str]',
+                     isa => 'Maybe[Num]',
                      lazy => 1,
                      default => sub {
                          my $self = shift;
                          return $self->db_hash->{scheduled};
                      }
+                 );
+
+has 'end'       => ( is => 'ro',
+                     isa => 'Maybe[Num]',
+                     lazy => 1,
+                     default => sub {
+                         my $self = shift;
+                         return unless $self->scheduled;
+
+                         my $length = $self->timelength->get_seconds( $self->duration );
+
+                         return $self->scheduled + $length;
+                     },
                  );
 
 has 'scheduled_color' => ( is => 'ro',
@@ -197,12 +212,28 @@ has 'body' => ( is => 'ro',
                 lazy => 1,
                 default => sub {
                     my $self = shift;
-
                     return unless $self->taskid;
 
                     return $self->taskbot->read_body( $self->taskid );
-                }
+                },
             );
+
+has 'pre_body' => ( is => 'ro',
+                    isa => 'Maybe[Str]',
+                    lazy => 1,
+                    default => sub {
+                        my $self = shift;
+
+                        my $body = $self->body;
+
+                        $body =~ s|\<br\>|\n\n|g;
+                        $Text::Wrap::columns = 120;
+                        my $hs = HTML::Strip->new();
+                        $body = $hs->parse( $body );
+                        $body =~ s|\xA0| |g;
+                        $body = fill( "", "", $body);
+                    }
+                );
 
 has 'taskid' => ( is => 'ro',
                   isa => 'Maybe[Str]',
@@ -219,6 +250,12 @@ has 'timer' => ( is => 'ro',
                  default => sub {
                      my $self = shift;
                      return "" unless $self->scheduled;
+
+                     my $now = time;
+                     if ( $self->scheduled < $now && $self->end > $now ) {
+                         return $self->timelength->get_human_readable( $self->end - time );
+                     }
+
                      return $self->timelength->get_human_readable( $self->scheduled - time );
                  }
               );
@@ -235,8 +272,14 @@ has 'timer_color' => ( is => 'ro',
                            my $self = shift;
                            return $self->display_color unless $self->scheduled;
 
-                           if ( $self->scheduled < time ) {
+                           my $now = time;
+
+                           if ( $self->end < $now ) {
                                return $self->colors->get_color( "red" );
+                           }
+
+                           if ( $self->scheduled < $now && $self->end > $now ) {
+                               return $self->colors->get_color( "darkgreen" );
                            }
 
                            return $self->timelength->get_age_color( abs( $self->scheduled - time ) );

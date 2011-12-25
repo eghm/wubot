@@ -4,7 +4,10 @@ use Moose::Role;
 # VERSION
 
 use Date::Manip;
+use HTML::Strip;
 use POSIX qw(strftime);
+use Text::Wrap;
+use URI::Find;
 
 use App::Wubot::Logger;
 use App::Wubot::SQLite;
@@ -86,6 +89,35 @@ has 'lastupdate' => ( is => 'ro',
                       }
                   );
 
+has 'body' => ( is => 'ro',
+                isa => 'Maybe[Str]',
+                lazy => 1,
+                default => sub {
+                    my $self = shift;
+
+                    my $body = $self->db_hash->{body};
+                    utf8::decode( $body );
+
+                    $body =~ s|\<br\>|\n\n|g;
+                    $Text::Wrap::columns = 80;
+                    my $hs = HTML::Strip->new();
+                    $body = $hs->parse( $body );
+                    $body =~ s|\xA0| |g;
+                    $body = fill( "", "", $body);
+                }
+            );
+
+
+has 'has_body' => ( is => 'ro',
+                    isa => 'Bool',
+                    lazy => 1,
+                    default => sub {
+                        my $self = shift;
+                        return $self->db_hash->{body} ? 1 : 0;
+                    },
+                );
+
+
 has 'lastupdate_color' => ( is => 'ro',
                             isa => 'Str',
                             lazy => 1,
@@ -106,5 +138,93 @@ has 'age' => ( is => 'ro',
                }
            );
 
+has 'username' => ( is => 'ro',
+                isa => 'Maybe[Str]',
+                lazy => 1,
+                default => sub {
+                    my $self = shift;
+
+                    my $username = $self->db_hash->{username};
+                    utf8::decode( $username );
+                    return $username;
+                }
+            );
+
+has 'seen' => ( is => 'ro',
+                isa => 'Maybe[Num]',
+                lazy => 1,
+                default => sub {
+                    my $self = shift;
+                    return $self->db_hash->{seen};
+                }
+            );
+
+has 'text' => ( is => 'ro',
+                isa => 'Str',
+                lazy => 1,
+                default => sub {
+                    my $self = shift;
+
+                    my @return;
+
+                    for my $field ( qw( subject subject_text ) ) {
+                        next unless $self->db_hash->{ $field };
+                        push @return, $self->db_hash->{ $field };
+                    }
+
+                    my $body = $self->body;
+                    if ( $body ) { push @return, $body; }
+
+                    return join( "\n", @return );
+                },
+            );
+
+has 'urls' => ( is => 'ro',
+                isa => 'ArrayRef[Str]',
+                lazy => 1,
+                default => sub {
+                    my $self = shift;
+
+                    my %urls;
+
+                    URI::Find->new( sub {
+                                        my ( $url ) = @_;
+                                        $url =~ s|\]\[.*$||;
+                                        $urls{$url}++;
+                                    }
+                                )->find(\$self->text);
+
+                    for my $url ( keys %urls ) {
+                        if    ( $url =~ m|doubleclick| ) { delete $urls{$url} }
+                    }
+
+                    if ( $self->link ) {
+                        delete $urls{ $self->link };
+                    }
+
+                    return [ sort keys %urls ];
+                }
+            );
+
+has 'image' => ( is => 'rw',
+                isa => 'Maybe[Str]',
+                lazy => 1,
+                default => sub {
+                    my $self = shift;
+
+                    my $image;
+
+                    URI::Find->new( sub {
+                                        my ( $url ) = @_;
+                                        return if $image;
+                                        return unless $url =~ m/\.(?:png|gif|jpg)$/i;
+                                        $image = "$url";
+                                        print "IMAGE: $image\n";
+                                    }
+                                )->find(\$self->text);
+
+                    return $image;
+                }
+            );
 
 1;

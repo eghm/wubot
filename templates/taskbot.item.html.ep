@@ -68,7 +68,7 @@
         <tr>
           <td width="8%">scheduled</td>
           <td>
-            <input type="text" name="scheduled" size="24" style="background-color: <%= $item->scheduled_color %>; border: 1px solid black" value="<%= $item->scheduled_pretty %>">
+            <input type="text" name="scheduled" size="24" style="background-color: <%= $item->timer_color %>; border: 1px solid black" value="<%= $item->scheduled_pretty %>">
             <%== $item->timer_display %>
           </td>
         </tr>
@@ -94,7 +94,16 @@
 
         <tr>
           <td width="8%"><a href='/taskbot/edit/<%= $item->taskid %>'>body</a></td>
-          <td><pre><%= $item->body %></pre></td>
+          <td><pre><%= $item->pre_body %></pre></td>
+        </tr>
+
+        <tr>
+          <td>urls</td>
+          <td>
+            <% for my $url ( @{ $item->urls } ) { %>
+            <a href='<%= $url %>'><%= $url %></a><br>
+            <% } %>
+          </td>
         </tr>
       
       </table>

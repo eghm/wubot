@@ -99,7 +99,7 @@
 
             <% if ( $row->has_body && $showbody ) { %>
               <hr>
-              <%= $row->body %>
+              <%= $row->pre_body %>
               <% if ( $row->image ) { %>
                 <br>
                 <img src="<%= $row->image %>">

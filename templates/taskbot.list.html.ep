@@ -139,7 +139,7 @@
             <%=  $item->scheduled_time %>
           </td>
           <% if ( $item->duration ) { %>
-            <td align="right" width='3%' bgcolor='black' style='border-color: #C00'><%= $item->duration %></td>
+            <td align="right" width='3%' bgcolor='black' style='border: 1px solid #dc322f'><%= $item->duration %></td>
           <% } else { %>
             <td align="right" width='3%'></td>
           <% } %>
