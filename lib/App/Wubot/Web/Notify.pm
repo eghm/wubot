@@ -405,6 +405,9 @@ sub notify {
                           } );
     $self->stash( 'mailboxes', \@mailboxes );
 
+    my $showbody = $self->param('showbody') || 0;
+    $self->stash( 'showbody', $showbody );
+
     $self->render( template => 'notify' );
 
 };

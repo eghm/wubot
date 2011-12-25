@@ -96,6 +96,16 @@
 
           <td style="text-align: left">
             <%= $row->{subject_text} %>
+
+            <% if ( $row->{body} && $showbody ) { %>
+              <hr>
+              <%= $row->{body} %>
+              <% if ( $row->{image} ) { %>
+                <br>
+                <img src="<%= $row->{image} %>">
+              <% } %>
+            <% } %>
+
           </td>
 
           <td>
