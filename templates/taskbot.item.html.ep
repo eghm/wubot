@@ -11,89 +11,90 @@
 
       <form method="post">
 
-      <table width="100%" bgcolor="<%= $item->{display_color} %>">
+      <table width="100%" bgcolor="<%= $item->display_color %>">
 
-        <% if ( $item->{taskid} ) { %>
+        <% if ( $item->taskid ) { %>
         <tr>
           <td width="8%">taskid</td>
-          <td><%= $item->{taskid} %><input type="hidden" name="taskid" value="<%= $item->{taskid} %>"</td>
+          <td><%= $item->taskid %><input type="hidden" name="taskid" value="<%= $item->taskid %>"</td>
         </tr>
         <% } %>
 
         <tr>
           <td width="8%">title</td>
           <td>
-            <input type="text" name="title" size="64" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{title} %>">
+            <input type="text" name="title" size="64" style="background-color: <%= $item->display_color %>; border: 1px solid black" value="<%= $item->title %>">
           </td>
         </tr>
 
         <tr>
           <td width="8%">priority</td>
           <td>
-            <input type="text" name="priority" size="64" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{priority} %>">
+            <input type="text" name="priority" size="20" style="background-color: <%= $item->display_color %>; border: 1px solid black" value="<%= $item->priority %>">
+            <%== $item->priority_display %>
           </td>
         </tr>
 
         <tr>
           <td width="8%">status</td>
           <td>
-            <input type="text" name="status" size="16" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{status} %>">
+            <input type="text" name="status" size="16" style="background-color: <%= $item->display_color %>; border: 1px solid black" value="<%= $item->status %>">
+            <%== $item->status_pretty %>
           </td>
         </tr>
 
         <tr>
           <td width="8%">color</td>
           <td>
-            <input type="text" name="color" size="64" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{color} %>">
+            <input type="text" name="color" size="64" style="background-color: <%= $item->display_color %>; border: 1px solid black" value="<%= $item->color %>">
           </td>
         </tr>
 
         <tr>
           <td width="8%">category</td>
           <td>
-            <input type="text" name="category" size="32" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{category} %>">
-            <% for my $cat ( split /\./, $item->{category} ) { %><a href="/taskbot/list?category=<%= $cat %>"><%= $cat %></a> <% } %>
+            <input type="text" name="category" size="32" style="background-color: <%= $item->display_color %>; border: 1px solid black" value="<%= $item->category %>">
+            <% for my $cat ( split /\./, $item->category ) { %><a href="/taskbot/list?category=<%= $cat %>"><%= $cat %></a> <% } %>
           </td>
         </tr>
 
         <tr>
           <td width="8%">link</td>
           <td>
-            <input type="text" name="link" size="64" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{link} %>">
+            <input type="text" name="link" size="64" style="background-color: <%= $item->display_color %>; border: 1px solid black" value="<%= $item->link %>">
           </td>
         </tr>
 
         <tr>
           <td width="8%">scheduled</td>
           <td>
-            <input type="text" name="scheduled" size="24" style="background-color: <%= $item->{scheduled_color} %>; border: 1px solid black" value="<%= $item->{scheduled} ? strftime( '%Y-%m-%d %H:%M', localtime( $item->{scheduled} ) ) : "" %>">
+            <input type="text" name="scheduled" size="24" style="background-color: <%= $item->scheduled_color %>; border: 1px solid black" value="<%= $item->scheduled_pretty %>">
+            <%== $item->timer_display %>
           </td>
         </tr>
 
         <tr>
           <td width="8%">duration</td>
           <td>
-            <input type="text" name="duration" size="16" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{duration} %>">
+            <input type="text" name="duration" size="16" style="background-color: <%= $item->display_color %>; border: 1px solid black" value="<%= $item->duration %>">
           </td>
         </tr>
 
         <tr>
           <td width="8%">recurrence</td>
           <td>
-            <input type="text" name="recurrence" size="16" style="background-color: <%= $item->{display_color} %>; border: 1px solid black" value="<%= $item->{recurrence} %>">
+            <input type="text" name="recurrence" size="16" style="background-color: <%= $item->display_color %>; border: 1px solid black" value="<%= $item->recurrence %>">
           </td>
         </tr>
 
         <tr>
           <td width="8%">command</td>
-          <td><input type="text" name="cmd" size="8" style="background-color: <%= $item->{display_color} %>; border: 1px solid black"></td>
+          <td><input type="text" name="cmd" size="8" style="background-color: <%= $item->display_color %>; border: 1px solid black"></td>
         </tr>
 
-
-          
         <tr>
-          <td width="8%"><a href='/taskbot/edit/<%= $item->{taskid} %>'>body</a></td>
-          <td><pre><%= $item->{body} %></pre></td>
+          <td width="8%"><a href='/taskbot/edit/<%= $item->taskid %>'>body</a></td>
+          <td><pre><%= $item->body %></pre></td>
         </tr>
       
       </table>

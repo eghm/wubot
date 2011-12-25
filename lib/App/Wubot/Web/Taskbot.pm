@@ -24,6 +24,8 @@ use App::Wubot::Util::Taskbot;
 use App::Wubot::Util::TimeLength;
 use App::Wubot::Util::WebUtil;
 
+use App::Wubot::Web::Obj::TaskObj;
+
 my $util    = App::Wubot::Util::WebUtil->new( { type => 'taskbot',
                                                 idname => 'taskid',
                                                 fields => [ qw( cmd color title link body status priority duration category recurrence scheduled ) ],
@@ -38,11 +40,6 @@ my $sqlite_notify  = App::Wubot::SQLite->new( { file => $notify_file } );
 
 my $is_null = "IS NULL";
 my $is_not_null = "IS NOT NULL";
-
-my $task_defaults = { color => 'blue',
-                      status => 'TODO',
-                      priority => 50,
-                  };
 
 sub get_submit_item_postproc {
     my ( $item ) = @_;
@@ -61,17 +58,6 @@ sub get_submit_item_postproc {
             $item->{ $param } = UnixDate( ParseDate( $value ), "%s" );
         }
     }
-}
-
-sub get_item_postproc {
-    my ( $item, $id ) = @_;
-
-    my $body = $taskbot->read_body( $id );
-    if ( $body ) {
-        $item->{body} = $body;
-    }
-
-    return $item;
 }
 
 sub cmd {
@@ -182,19 +168,9 @@ sub item {
     my $now = time;
 
     # get
-    my ( $item ) = $util->get_item( $taskid, \&get_item_postproc );
-    $item->{display_color} = $colors->get_color( $item->{color} );
+    my $item_obj = App::Wubot::Web::Obj::TaskObj->new( { redir => "item/$taskid", taskid => $taskid, sql => $taskbot->sql } );
+    $self->stash( item => $item_obj );
 
-    $item->{lastupdate_color} = $timelength->get_age_color( $now - $item->{lastupdate} );
-
-    if ( $item->{scheduled} ) {
-        $item->{scheduled_color} = $timelength->get_age_color( abs( $now - $item->{scheduled} ) );
-    }
-    else {
-        $item->{scheduled_color} = $item->{display_color};
-    }
-
-    $self->stash( item => $item );
     $self->render( template => 'taskbot.item' );
 }
 
@@ -214,7 +190,8 @@ sub newtask {
 
     $item->{display_color} = $colors->get_color( $item->{color} );
 
-    $self->stash( "item" => $item );
+    my $item_obj = App::Wubot::Web::Obj::TaskObj->new( { db_hash => $item, sql => $taskbot->sql } );
+    $self->stash( item => $item_obj );
 
     $self->render( template => 'taskbot.item' );
 }
@@ -301,50 +278,23 @@ sub tasks {
 
     $query->{callback} = sub {
         my $task = shift;
-
-        my $age =  $now - $task->{lastupdate};
-        $task->{age} = $timelength->get_human_readable( $age );
-        $task->{lastupdate_color} = $timelength->get_age_color( $age );
-
-        $task->{timer} = $task->{scheduled} ?
-                         $timelength->get_human_readable( $task->{scheduled} - time ) :
-                         "";
-
-        $task->{color} = $colors->get_color( $task->{color} );
-
-        if ( ! $task->{scheduled} ) {
-            $task->{timer_color} = $task->{color};
-        }
-        elsif ( $task->{scheduled} > time ) {
-            $task->{timer_color} = $timelength->get_age_color( abs( $task->{scheduled} - time ) );
-        }
-        else {
-            $task->{timer_color} = $colors->get_color( "red" );
-        }
-
-        if ( $task->{scheduled} ) {
-            if ( $now > $task->{scheduled} ) {
-                $task->{scheduled_color} = $colors->get_color( "red" );
-            }
-            else {
-                $task->{scheduled_color} = $timelength->get_age_color( abs( $now - $task->{scheduled} ) );
-            }
-        } else {
-            $task->{scheduled_color} = $task->{color};
-        }
-
-        push @tasks, $task;
+        my $obj  = App::Wubot::Web::Obj::TaskObj->new( { db_hash => $task, sql => $taskbot->sql } );
+        push @tasks, $obj;
     };
 
     $taskbot->sql->select( $query );
 
     $self->stash( body_data => \@tasks );
 
+    my $where = { status => 'TODO' };
+    if ( $util->check_session( $self, 'norecur' ) ) {
+        $where = { status => 'TODO', 'recurrence' => [ undef, "" ] };
+    }
     my @categories;
     $taskbot->sql->select( { fields => 'category, max(lastupdate) as lastupdate, count(*) as count',
                              tablename => 'taskbot',
                              group => 'category',
-                             where => { status => 'TODO' },
+                             where => $where,
                              order => 'lastupdate DESC, count DESC',
                              callback => sub {
                                  my $row = shift;

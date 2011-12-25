@@ -32,6 +32,9 @@
       |
       <a href="?status=done">done</a>
       |
+      <a href="?norecur=1">-</a>
+      <a href="?norecur=0">+</a>
+      |
     </font>
 
     <form method="post">
@@ -43,15 +46,6 @@
           <table>
             <% for my $mailbox ( @{ $mailboxes } ) { %>
               <tr bgcolor='<%= $mailbox->{color} %>'><td><a href='/notify?mailbox=<%= $mailbox->{mailbox} %>'><%= $mailbox->{mailbox} %></a></td><td><%= $mailbox->{count} %></td></tr>
-            <% } %>
-          </table>
-        </td>
-        <td>
-
-        <td width='50' class="categories">
-          <table>
-            <% for my $category ( @{ $categories } ) { %>
-              <tr bgcolor='<%= $category->{color} %>'><td><a href='/taskbot/list?category=<%= $category->{category} %>&scheduled=any&status=todo'><%= $category->{category} %></a></td><td><%= $category->{count} %></td></tr>
             <% } %>
           </table>
         </td>
@@ -71,18 +65,18 @@
         <% my $now = time; %>
         <% my $before = 1; %>
         <% my $count = 0; %>
-        <% my $last_date; %>
+        <% my $last_date = ""; %>
         <% my $undated = 0; %>
         <% my $yesterday =  strftime( '%Y-%m-%d %a', localtime( time - 24*60*60 ) ); %>
         <% my $today     =  strftime( '%Y-%m-%d %a', localtime( time ) ); %>
         <% for my $item ( @{ $body_data } ) { %>
 
-          <% unless ( $item->{scheduled} ) { $undated = 1 }; %>
+          <% unless ( $item->scheduled ) { $undated = 1 }; %>
           <% $count++; %>
 
-          <% my $date =  strftime( '%Y-%m-%d %a', localtime( $item->{scheduled} ) ); %>
+          <% my $date =  strftime( '%Y-%m-%d %a', localtime( $item->scheduled ) ); %>
 
-          <% if ( $before && $item->{scheduled} > $now ) { %>
+          <% if ( $before && $item->scheduled > $now ) { %>
 
             <% if ( $before && $count == 1 ) { %>
               <% $before = 0; %>
@@ -110,12 +104,12 @@
             <% $before = 0; %>
           <% } %>
 
-          <% if ( $last_date ne $date && $date ge $yesterday || ! $item->{scheduled} && $count == 1 ) {  %>
+          <% if ( $last_date ne $date && $date ge $yesterday || ! $item->scheduled && $count == 1 ) {  %>
             <tr bgcolor="black">
               <% for my $header ( @$headers ) { %>
                 <% if ( $header eq "timer" ) { %>
                   <td height="50px" valign="bottom" align="right">
-                    <% if ( ! $item->{scheduled} ) { %>
+                    <% if ( ! $item->scheduled ) { %>
                       Unscheduled
                     <% } elsif ( $date eq $yesterday ) { %>
                       Yesterday
@@ -133,37 +127,31 @@
             <% $last_date = $date; %>
           <% } %>
           
-        <tr bgcolor="<%= $item->{color} %>">
+        <tr bgcolor="<%= $item->display_color %>">
 
-          <td align="right" bgcolor="<%= $item->{timer_color} %>" width='10%'>
-            <% if ( $item->{timer} ) { %>
-            <%=  $item->{timer} %>
-            <a href="/taskbot/item/<%= $item->{taskid} %>?scheduled=<%= $item->{scheduled} - 24*60*60 %>&redir=list">-</a>
-            <a href="/taskbot/item/<%= $item->{taskid} %>?scheduled=<%= $item->{scheduled} + 24*60*60 %>&redir=list">+</a>
-            <% } %>
+          <td align="right" bgcolor="<%= $item->timer_color %>" width='10%'>
+            <%==  $item->timer_display %>
           </td>
-          <td width='8%' align="right"><input type="text" name="cmd_<%= $item->{taskid} %>" size="8" style="background-color: <%= $item->{color} %>; border: 1px solid black"></td>
+          <td width='8%' align="right"><input type="text" name="cmd_<%= $item->taskid %>" size="8" style="background-color: <%= $item->display_color %>; border: 1px solid black"></td>
 
-          <td align="right"><a href="/taskbot/item/<%= $item->{taskid} %>?status=DONE&recurrence=<%= $item->{recurrence} %>&redir=list"><%= $item->{status} %></a></td>
+          <td align="right"><a href="/taskbot/item/<%= $item->taskid %>?status=DONE&recurrence=<%= $item->recurrence %>&redir=list"><%== $item->status_pretty %></a></td>
           <td align="right" width='7%'>
-            <%=  $item->{scheduled} ? strftime( '%l:%M %p', localtime( $item->{scheduled} ) ) : ""  %>
+            <%=  $item->scheduled_time %>
           </td>
-          <% if ( $item->{duration} ) { %>
-            <td align="right" width='3%' bgcolor='black' style='border-color: #C00'><%= $item->{duration} %></td>
+          <% if ( $item->duration ) { %>
+            <td align="right" width='3%' bgcolor='black' style='border-color: #C00'><%= $item->duration %></td>
           <% } else { %>
             <td align="right" width='3%'></td>
           <% } %>
-          <td><a href='/taskbot/item/<%= $item->{taskid} %>'><%= $item->{title} %></a></td>
-          <td width='1%'><a href='/taskbot/edit/<%= $item->{taskid} %>'>-&gt;</a></td>
-          <td width='1%'><% if ( $item->{link} ) { %><a href='<%= $item->{link} %>'>(*)</a><% } %></td>
+          <td><a href='/taskbot/item/<%= $item->taskid %>'><%= $item->title %></a></td>
+          <td width='1%'><a href='/taskbot/edit/<%= $item->taskid %>'>-&gt;</a></td>
+          <td width='1%'><% if ( $item->link ) { %><a href='<%= $item->link %>'>(*)</a><% } %></td>
           <td width='3%'>
-            <%= $item->{priority} %>
-            <a href='/taskbot/item/<%= $item->{taskid} %>?priority=<%= $item->{priority} - 5 %>&redir=list'>-</a>
-            <a href='/taskbot/item/<%= $item->{taskid} %>?priority=<%= $item->{priority} + 5 %>&redir=list'>+</a>
+            <%== $item->priority_display %>
           </td>
-          <td width='1%'><%= $item->{recurrence} %></td>
-          <td align="center" width='10%'><% for my $cat ( split /\./, $item->{category} ) { %><a href="?category=<%= $cat %>"><%= $cat %></a> <% } %></td>
-          <td width='6%' bgcolor="<%= $item->{lastupdate_color} %>"><%=  $item->{age} %></td>
+          <td width='1%'><%= $item->recurrence %></td>
+          <td align="center" width='10%'><% for my $cat ( split /\./, $item->category ) { %><a href="?category=<%= $cat %>"><%= $cat %></a> <% } %></td>
+          <td width='6%' bgcolor="<%= $item->lastupdate_color %>"><%=  $item->age %></td>
 
           
         </tr>
@@ -173,6 +161,14 @@
       </tbody>
       <tfoot></tfoot>
     </table>
+
+    </td>
+        <td width='50' class="categories">
+          <table>
+            <% for my $category ( @{ $categories } ) { %>
+              <tr bgcolor='<%= $category->{color} %>'><td><a href='/taskbot/list?category=<%= $category->{category} %>&scheduled=any&status=todo'><%= $category->{category} %></a></td><td><%= $category->{count} %></td></tr>
+            <% } %>
+          </table>
 
     </td></tr></table>
 

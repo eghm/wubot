@@ -180,7 +180,7 @@ sub read_body {
     my ( $self, $taskid ) = @_;
 
     unless ( $taskid ) {
-        die "ERROR: write_body called without taskid"
+        die "ERROR: read_body called without taskid"
     }
 
     my $path = $self->get_path( $taskid );
