@@ -22,7 +22,6 @@ App::Wubot::Util::Taskbot
 
 Prototype.
 
-
 =cut
 
 has 'sql'    => ( is      => 'ro',
@@ -67,7 +66,6 @@ has 'timelength' => ( is => 'ro',
                       },
                   );
 
-
 =head1 SUBROUTINES/METHODS
 
 =over 8
@@ -109,18 +107,21 @@ sub check_schedule {
 
     my $limit = $options->{limit} || 10;
 
-    my $start = time;
-    my $end   = $start + 60*15;
+    # default to a 24-hour window
+    my $now = time;
+    my $end = time + 60*60*24;
 
-    $self->sql->select( { tablename => 'taskbot',
-                          order     => [ 'scheduled', 'priority DESC', 'lastupdate DESC' ],
-                          where     => { status => 'TODO', scheduled => { '>=' => $start, '<=' => $end } },
-                          limit     => $limit,
-                          callback  => sub {
-                              my $row = shift;
-                              push @tasks, $row;
-                          },
-                      } );
+    my %query = ( tablename => 'taskbot',
+                  order     => [ 'scheduled', 'priority DESC', 'lastupdate DESC' ],
+                  limit     => $limit,
+                  where     => { status => 'TODO', scheduled => { '>=' => $now, '<=' => $end } },
+                  callback  => sub {
+                      my $row = shift;
+                      push @tasks, $row;
+                  },
+              );
+
+    $self->sql->select( \%query );
 
     return @tasks;
 
