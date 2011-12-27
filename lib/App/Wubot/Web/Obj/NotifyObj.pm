@@ -12,124 +12,123 @@ use App::Wubot::Util::Taskbot;
 use App::Wubot::Util::TimeLength;
 
 has 'notifications'    => ( is => 'ro',
-                      isa => 'App::Wubot::Util::Notifications',
-                      lazy => 1,
-                      default => sub {
-                          return App::Wubot::Util::Notifications->new();
-                      },
-                  );
+                            isa => 'App::Wubot::Util::Notifications',
+                            lazy => 1,
+                            default => sub {
+                                return App::Wubot::Util::Notifications->new();
+                            },
+                        );
 
-has 'timelength' => ( is => 'ro',
-                      isa => 'App::Wubot::Util::TimeLength',
-                      lazy => 1,
-                      default => sub {
-                          return App::Wubot::Util::TimeLength->new();
-                      },
-                  );
+has 'timelength'       => ( is => 'ro',
+                            isa => 'App::Wubot::Util::TimeLength',
+                            lazy => 1,
+                            default => sub {
+                                return App::Wubot::Util::TimeLength->new();
+                            },
+                        );
 
-has 'db_hash' => ( is => 'ro',
-                   isa => 'HashRef',
-                   lazy => 1,
-                   default => sub {
-                       my $self = shift;
-                       unless ( $self->{id} ) {
-                           $self->logger->logdie( "ERROR: no data provided and no taskid set" );
-                       }
-                       my ( $task_h ) = $self->sql->select( { tablename => 'notifications',
-                                                              where     => { id => $self->id },
-                                                          } );
-                       return $task_h;
-                   },
-               );
+has 'db_hash'          => ( is => 'ro',
+                            isa => 'HashRef',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                unless ( $self->{id} ) {
+                                    $self->logger->logdie( "ERROR: no data provided and no taskid set" );
+                                }
+                                my ( $task_h ) = $self->sql->select( { tablename => 'notifications',
+                                                                       where     => { id => $self->id },
+                                                                   } );
+                                return $task_h;
+                            },
+                        );
 
-has 'subject' => ( is => 'ro',
-                   isa => 'Str',
-                   lazy => 1,
-                   default => sub {
-                       my $self = shift;
-                       my $subject = $self->db_hash->{subject};
-                       utf8::decode( $subject );
-                       return $subject;
-                   }
-               );
-
-has 'subject_text' => ( is => 'ro',
-                        isa => 'Maybe[Str]',
-                        lazy => 1,
-                        default => sub {
-                            my $self = shift;
-
-                            if ( $self->db_hash->{subject_text} ) {
-                                return $self->db_hash->{subject_text};
+has 'subject'          => ( is => 'ro',
+                            isa => 'Str',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                my $subject = $self->db_hash->{subject};
+                                utf8::decode( $subject );
+                                return $subject;
                             }
+                        );
 
-                            return $self->db_hash->{subject};
-                        }
-                    );
+has 'subject_text'     => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
 
+                                my $subject = $self->db_hash->{subject_text} || $self->db_hash->{subject};
 
-has 'score' => ( is => 'ro',
-                 isa => 'Maybe[Num]',
-                 lazy => 1,
-                 default => sub {
-                     my $self = shift;
-                     return $self->db_hash->{duration};
-                 }
-             );
+                                return unless $subject;
 
-has 'icon' => ( is => 'ro',
-                isa => 'Maybe[Str]',
-                lazy => 1,
-                default => sub {
-                    my $self = shift;
-                    my $icon = $self->db_hash->{icon};
-                    $icon =~ s|^.*\/||;
-                    return $icon;
-                }
-            );
+                                utf8::decode( $subject );
+                                return $subject;
+                            }
+                        );
 
+has 'score'            => ( is => 'ro',
+                            isa => 'Maybe[Num]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{duration};
+                            }
+                        );
 
-has 'mailbox' => ( is => 'ro',
-                   isa => 'Maybe[Str]',
-                   lazy => 1,
-                   default => sub {
-                       my $self = shift;
-                       return $self->db_hash->{mailbox} || "null";
-                   }
-               );
+has 'icon'             => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                my $icon = $self->db_hash->{icon};
+                                $icon =~ s|^.*\/||;
+                                return $icon;
+                            }
+                        );
 
-has 'key' => ( is => 'ro',
-               isa => 'Maybe[Str]',
-               lazy => 1,
-               default => sub {
-                   my $self = shift;
-                   return $self->db_hash->{key};
-               }
-            );
+has 'mailbox'          => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{mailbox} || "null";
+                            }
+                        );
 
-has 'key1' => ( is => 'ro',
-               isa => 'Maybe[Str]',
-               lazy => 1,
-               default => sub {
-                   my $self = shift;
-                   if ( $self->key =~ m|^(.*?)\-(.*)| ) {
-                       return $1;
-                   }
-                   return $self->key;
-               }
-            );
+has 'key'              => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{key};
+                            }
+                        );
 
-has 'key2' => ( is => 'ro',
-               isa => 'Maybe[Str]',
-               lazy => 1,
-               default => sub {
-                   my $self = shift;
-                   if ( $self->key =~ m|^(.*?)\-(.*)| ) {
-                       return $2;
-                   }
-                   return;
-               }
-            );
+has 'key1'             => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                if ( $self->key =~ m|^(.*?)\-(.*)| ) {
+                                    return $1;
+                                }
+                                return $self->key;
+                            }
+                        );
+
+has 'key2'             => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                if ( $self->key =~ m|^(.*?)\-(.*)| ) {
+                                    return $2;
+                                }
+                                return;
+                            }
+                        );
 
 
 with 'App::Wubot::Web::Obj::Roles::Obj';

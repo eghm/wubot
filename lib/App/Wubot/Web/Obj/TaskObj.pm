@@ -13,97 +13,94 @@ use App::Wubot::SQLite;
 use App::Wubot::Util::Taskbot;
 use App::Wubot::Util::TimeLength;
 
-has 'taskbot'    => ( is => 'ro',
-                      isa => 'App::Wubot::Util::Taskbot',
-                      lazy => 1,
-                      default => sub {
-                          return App::Wubot::Util::Taskbot->new();
-                      },
-                  );
+has 'taskbot'          => ( is => 'ro',
+                            isa => 'App::Wubot::Util::Taskbot',
+                            lazy => 1,
+                            default => sub {
+                                return App::Wubot::Util::Taskbot->new();
+                            },
+                        );
 
+has 'db_hash'          => ( is => 'ro',
+                            isa => 'HashRef',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                unless ( $self->{taskid} ) {
+                                    $self->logger->logdie( "ERROR: no data provided and no taskid set" );
+                                }
+                                my ( $task_h ) = $self->sql->select( { tablename => 'taskbot',
+                                                                       where     => { taskid => $self->taskid },
+                                                                   } );
+                                return $task_h;
+                            },
+                        );
 
-has 'db_hash' => ( is => 'ro',
-                   isa => 'HashRef',
-                   lazy => 1,
-                   default => sub {
-                       my $self = shift;
-                       unless ( $self->{taskid} ) {
-                           $self->logger->logdie( "ERROR: no data provided and no taskid set" );
-                       }
-                       my ( $task_h ) = $self->sql->select( { tablename => 'taskbot',
-                                                              where     => { taskid => $self->taskid },
-                                                          } );
-                       return $task_h;
-                   },
-               );
+has 'status'           => ( is => 'ro',
+                            isa => 'Str',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{status} || "TODO";
+                            }
+                        );
 
-has 'status' => ( is => 'ro',
-                  isa => 'Str',
-                  lazy => 1,
-                  default => sub {
-                      my $self = shift;
-                      return $self->db_hash->{status} || "TODO";
-                  }
-              );
+has 'status_pretty'    => ( is => 'ro',
+                            isa => 'Str',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                my $status = $self->status;
+                                if ( $status eq "TODO" ) {
+                                    my $color = $self->colors->get_color( 'white' );
+                                    $status = "<font color='$color'>TODO</font>";
+                                } elsif ( $status eq "DONE" ) {
+                                    my $color = $self->colors->get_color( 'green' );
+                                    $status = "<font color='green'>DONE</font>";
+                                }
+                                return $status;
+                            }
+                        );
 
+has 'scheduled'        => ( is => 'ro',
+                            isa => 'Maybe[Num]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{scheduled};
+                            }
+                        );
 
-has 'status_pretty' => ( is => 'ro',
-                         isa => 'Str',
-                         lazy => 1,
-                         default => sub {
-                             my $self = shift;
-                             my $status = $self->status;
-                             if ( $status eq "TODO" ) {
-                                 my $color = $self->colors->get_color( 'red' );
-                                 $status = "<font color='$color'>TODO</font>";
-                             }
-                             elsif ( $status eq "DONE" ) {
-                                 my $color = $self->colors->get_color( 'green' );
-                                 $status = "<font color='green'>DONE</font>";
-                             }
-                             return $status;
-                         }
-                     );
+has 'end'              => ( is => 'ro',
+                            isa => 'Maybe[Num]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return unless $self->scheduled;
 
-has 'scheduled' => ( is => 'ro',
-                     isa => 'Maybe[Num]',
-                     lazy => 1,
-                     default => sub {
-                         my $self = shift;
-                         return $self->db_hash->{scheduled};
-                     }
-                 );
+                                my $length = $self->timelength->get_seconds( $self->duration );
 
-has 'end'       => ( is => 'ro',
-                     isa => 'Maybe[Num]',
-                     lazy => 1,
-                     default => sub {
-                         my $self = shift;
-                         return unless $self->scheduled;
+                                return $self->scheduled + $length;
+                            },
+                        );
 
-                         my $length = $self->timelength->get_seconds( $self->duration );
+has 'scheduled_color'  => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
 
-                         return $self->scheduled + $length;
-                     },
-                 );
+                                return $self->display_color unless $self->scheduled;
 
-has 'scheduled_color' => ( is => 'ro',
-                           isa => 'Maybe[Str]',
-                           lazy => 1,
-                           default => sub {
-                               my $self = shift;
+                                my $now = time;
 
-                               return $self->display_color unless $self->scheduled;
+                                if ( $now > $self->scheduled ) {
+                                    return $self->colors->get_color( "red" );
+                                }
 
-                               my $now = time;
-
-                               if ( $now > $self->scheduled ) {
-                                   return $self->colors->get_color( "red" );
-                               }
-
-                               return $self->timelength->get_age_color( abs( $now - $self->scheduled ) );
-                           }
-                       );
+                                return $self->timelength->get_age_color( abs( $now - $self->scheduled ) );
+                            }
+                        );
 
 has 'scheduled_pretty' => ( is => 'ro',
                             isa => 'Str',
@@ -116,45 +113,45 @@ has 'scheduled_pretty' => ( is => 'ro',
                             }
                         );
 
-has 'scheduled_time' => ( is => 'ro',
-                          isa => 'Str',
-                          lazy => 1,
-                          default => sub {
-                              my $self = shift;
-                              my $scheduled = $self->scheduled;
-                              return "" unless $scheduled;
-                              return strftime( '%l:%M %p', localtime( $scheduled ) );
-                          }
-                      );
+has 'scheduled_time'   => ( is => 'ro',
+                            isa => 'Str',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                my $scheduled = $self->scheduled;
+                                return "" unless $scheduled;
+                                return strftime( '%l:%M %p', localtime( $scheduled ) );
+                            }
+                        );
 
-has 'scheduled_age' => ( is => 'ro',
-                         isa => 'Str',
-                         lazy => 1,
-                         default => sub {
-                             my $self = shift;
-                             my $scheduled = $self->scheduled;
-                             return "" unless $scheduled;
-                             return $self->timelength->get_human_readable( time - $scheduled );
-                         }
-                     );
+has 'scheduled_age'    => ( is => 'ro',
+                            isa => 'Str',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                my $scheduled = $self->scheduled;
+                                return "" unless $scheduled;
+                                return $self->timelength->get_human_readable( time - $scheduled );
+                            }
+                        );
 
-has 'title' => ( is => 'ro',
-                 isa => 'Str',
-                 lazy => 1,
-                 default => sub {
-                     my $self = shift;
-                     return $self->db_hash->{title};
-                 }
-             );
+has 'title'            => ( is => 'ro',
+                            isa => 'Str',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{title};
+                            }
+                        );
 
-has 'priority' => ( is => 'ro',
-                    isa => 'Num',
-                    lazy => 1,
-                    default => sub {
-                        my $self = shift;
-                        return $self->db_hash->{priority} || 50;
-                    }
-                );
+has 'priority'         => ( is => 'ro',
+                            isa => 'Num',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{priority} || 50;
+                            }
+                        );
 
 has 'priority_display' => ( is => 'ro',
                             isa => 'Str',
@@ -180,137 +177,175 @@ has 'priority_display' => ( is => 'ro',
                             }
                         );
 
-has 'category' => ( is => 'ro',
-                    isa => 'Maybe[Str]',
-                    lazy => 1,
-                    default => sub {
-                        my $self = shift;
-                        return $self->db_hash->{category};
-                    }
-                );
+has 'category'         => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{category};
+                            }
+                        );
 
-has 'duration' => ( is => 'ro',
-                    isa => 'Maybe[Str]',
-                    lazy => 1,
-                    default => sub {
-                        my $self = shift;
-                        return $self->db_hash->{duration};
-                    }
-                );
+has 'duration'         => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{duration};
+                            }
+                        );
 
-has 'recurrence' => ( is => 'ro',
-                      isa => 'Maybe[Str]',
-                      lazy => 1,
-                      default => sub {
-                          my $self = shift;
-                          return $self->db_hash->{recurrence};
-                      }
-                  );
+has 'recurrence'       => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{recurrence};
+                            }
+                        );
 
-has 'body' => ( is => 'ro',
-                isa => 'Maybe[Str]',
-                lazy => 1,
-                default => sub {
-                    my $self = shift;
-                    return unless $self->taskid;
+has 'recurrence_color'  => ( is => 'ro',
+                             isa => 'Maybe[Str]',
+                             lazy => 1,
+                             default => sub {
+                                 my $self = shift;
 
-                    return $self->taskbot->read_body( $self->taskid );
-                },
-            );
+                                 return $self->display_color unless $self->recurrence;
 
-has 'pre_body' => ( is => 'ro',
-                    isa => 'Maybe[Str]',
-                    lazy => 1,
-                    default => sub {
-                        my $self = shift;
+                                 my $seconds;
 
-                        my $body = $self->body;
+                                 eval {                          # try
+                                     $seconds = $self->timelength->get_seconds( $self->recurrence );
+                                     1;
+                                 } or do {                       # catch
+                                     return $self->display_color;
+                                 };
 
-                        $body =~ s|\<br\>|\n\n|g;
-                        $Text::Wrap::columns = 120;
-                        my $hs = HTML::Strip->new();
-                        $body = $hs->parse( $body );
-                        $body =~ s|\xA0| |g;
-                        $body = fill( "", "", $body);
-                    }
-                );
+                                 return $self->display_color unless $seconds;
 
-has 'taskid' => ( is => 'ro',
-                  isa => 'Maybe[Str]',
-                  lazy => 1,
-                  default => sub {
-                      my $self = shift;
-                      return $self->db_hash->{taskid};
-                  }
-              );
+                                 return $self->timelength->get_age_color( $seconds );
+                            }
+                        );
 
-has 'timer' => ( is => 'ro',
-                 isa => 'Str',
-                 lazy => 1,
-                 default => sub {
-                     my $self = shift;
-                     return "" unless $self->scheduled;
 
-                     my $now = time;
-                     if ( $self->scheduled < $now && $self->end > $now ) {
-                         return $self->timelength->get_human_readable( $self->end - time );
-                     }
+has 'body'             => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return unless $self->taskid;
 
-                     return $self->timelength->get_human_readable( $self->scheduled - time );
-                 }
-              );
+                                return $self->taskbot->read_body( $self->taskid );
+                            },
+                        );
 
-has 'redir' => ( is => 'ro',
-                 isa => 'Str',
-                 default => "list",
-             );
+has 'has_body'         => ( is => 'ro',
+                            isa => 'Bool',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return unless $self->taskid;
+                                my $path = $self->taskbot->get_path( $self->taskid );
+                                return 1 if -r $path;
+                                return;
+                            },
+                        );
 
-has 'timer_color' => ( is => 'ro',
-                       isa => 'Str',
-                       lazy => 1,
-                       default => sub {
-                           my $self = shift;
-                           return $self->display_color unless $self->scheduled;
+has 'pre_body'         => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
 
-                           my $now = time;
+                                my $body = $self->body;
 
-                           if ( $self->end < $now ) {
-                               return $self->colors->get_color( "red" );
-                           }
+                                return unless $body;
 
-                           if ( $self->scheduled < $now && $self->end > $now ) {
-                               return $self->colors->get_color( "darkgreen" );
-                           }
+                                $body =~ s|\<br\>|\n\n|g;
+                                $Text::Wrap::columns = 120;
+                                my $hs = HTML::Strip->new();
+                                $body = $hs->parse( $body );
+                                $body =~ s|\xA0| |g;
+                                $body = fill( "", "", $body);
+                            }
+                        );
 
-                           return $self->timelength->get_age_color( abs( $self->scheduled - time ) );
-                       }
-                   );
+has 'taskid'           => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{taskid};
+                            }
+                        );
 
-has 'timer_display' => ( is => 'ro',
-                         isa => 'Str',
-                         lazy => 1,
-                         default => sub {
-                             my $self = shift;
+has 'timer'            => ( is => 'ro',
+                            isa => 'Str',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return "" unless $self->scheduled;
 
-                             return "" unless $self->timer;
+                                my $now = time;
+                                if ( $self->scheduled < $now && $self->end > $now ) {
+                                    return $self->timelength->get_human_readable( $self->end - time );
+                                }
 
-                             my $redir = $self->redir;
+                                return $self->timelength->get_human_readable( $self->scheduled - time );
+                            }
+                        );
 
-                             my $link = join( "/", "/taskbot", "item", $self->taskid );
-                             $link .= "?redir=$redir&scheduled";
+has 'redir'            => ( is => 'ro',
+                            isa => 'Str',
+                            default => "list",
+                        );
 
-                             my $link_minus = join( "=", $link, $self->scheduled - 24*60*60 );
-                             my $link_plus  = join( "=", $link, $self->scheduled + 24*60*60 );
+has 'timer_color'      => ( is => 'ro',
+                            isa => 'Str',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->display_color unless $self->scheduled;
 
-                             my $return = join( "\n",
-                                                $self->timer,
-                                                "<a href='$link_minus'>-</a>",
-                                                "<a href='$link_plus'>+</a>",
-                                            );
+                                my $now = time;
 
-                             return $return;
-                         }
-                     );
+                                if ( $self->end < $now ) {
+                                    return $self->colors->get_color( "red" );
+                                }
+
+                                if ( $self->scheduled < $now && $self->end > $now ) {
+                                    return $self->colors->get_color( "darkgreen" );
+                                }
+
+                                return $self->timelength->get_age_color( abs( $self->scheduled - time ) );
+                            }
+                        );
+
+has 'timer_display'    => ( is => 'ro',
+                            isa => 'Str',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+
+                                return "" unless $self->timer;
+
+                                my $redir = $self->redir;
+
+                                my $link = join( "/", "/taskbot", "item", $self->taskid );
+                                $link .= "?redir=$redir&scheduled";
+
+                                my $link_minus = join( "=", $link, $self->scheduled - 24*60*60 );
+                                my $link_plus  = join( "=", $link, $self->scheduled + 24*60*60 );
+
+                                my $return = join( "\n",
+                                                   $self->timer,
+                                                   "<a href='$link_minus'>-</a>",
+                                                   "<a href='$link_plus'>+</a>",
+                                               );
+
+                                return $return;
+                            }
+                        );
 
 with 'App::Wubot::Web::Obj::Roles::Obj';
 
