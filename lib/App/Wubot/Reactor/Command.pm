@@ -277,8 +277,9 @@ sub monitor {
     for my $queue ( @queues ) {
 
         my $id = $queue->{queueid};
+        next unless $id;
 
-        $self->logger->debug( "Checking queue: $queue->{queueid}" );
+        $self->logger->debug( "Checking queue: $id" );
 
         my $pidfile = join( "/", $self->logdir, "$id.pid" );
         my $logfile = join( "/", $self->logdir, "$id.log" );
