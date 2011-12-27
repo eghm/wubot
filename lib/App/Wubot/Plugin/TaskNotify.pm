@@ -63,9 +63,13 @@ sub check {
             my $task = $timers->{ $taskid }->{ $scheduled };
             my $seconds = $scheduled - $now;
 
-            $self->timers->{ $taskid }->{ $scheduled } = AnyEvent->timer( after => $seconds,
-                                                                           cb    => sub { $self->reactor->( $task, $config ) },
-                                                                       );
+            $self->timers->{ $taskid }->{ $scheduled }
+                = AnyEvent->timer( after => $seconds,
+                                   cb    => sub {
+                                       $task->{lastupdate} = time;
+                                       $self->reactor->( $task, $config );
+                                   },
+                               );
         }
     }
 

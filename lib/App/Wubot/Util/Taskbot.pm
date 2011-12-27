@@ -105,7 +105,7 @@ sub check_schedule {
 
     my @tasks;
 
-    my $limit = $options->{limit} || 10;
+    my $limit = $options->{limit} || 20;
 
     # default to a 24-hour window
     my $now = time;
