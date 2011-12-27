@@ -101,6 +101,8 @@ sub check {
                     };
 
         push @react, $article;
+
+        last if $ENV{LIMIT_ONE};
     }
 
     $self->cache_expire( $cache );
