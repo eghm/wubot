@@ -163,6 +163,12 @@ set the perl path (see the example above).  This makes it possible to
 configure multiple monitors per host if there is more than one perl
 installation you want to monitor.
 
+To upgrade all the perl modules that have newer versions available,
+use the command:
+
+  perl -MCPAN -e 'CPAN::Shell->install(CPAN::Shell->r)'
+
+
 =head1 SUBROUTINES/METHODS
 
 =over 8
