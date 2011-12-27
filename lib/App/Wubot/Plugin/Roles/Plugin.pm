@@ -42,5 +42,11 @@ has 'logger'  => ( is => 'ro',
                    },
                );
 
+has 'reactor'  => ( is => 'ro',
+                    isa => 'CodeRef',
+                    required => 1,
+                );
+
+
 
 1;
