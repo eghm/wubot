@@ -347,6 +347,44 @@ has 'timer_display'    => ( is => 'ro',
                             }
                         );
 
+has 'sound'            => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{sound};
+                            }
+                        );
+
+has 'lastdone'       => ( is => 'ro',
+                          isa => 'Maybe[Str]',
+                          lazy => 1,
+                          default => sub {
+                              my $self = shift;
+                              return $self->db_hash->{lastdone};
+                          }
+                      );
+
+has 'lastdone_age'     => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return unless $self->lastdone;
+                                return $self->timelength->get_human_readable( time - $self->lastdone );
+                            }
+                        );
+
+has 'lastdone_color' => ( is => 'ro',
+                          isa => 'Str',
+                          lazy => 1,
+                          default => sub {
+                              my $self = shift;
+                              return $self->color unless $self->lastdone;
+                              return $self->timelength->get_age_color( abs( $self->lastdone - time ) );
+                          }
+                      );
+
 with 'App::Wubot::Web::Obj::Roles::Obj';
 
 1;

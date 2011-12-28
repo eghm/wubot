@@ -28,7 +28,7 @@ use App::Wubot::Web::Obj::TaskObj;
 
 my $util    = App::Wubot::Util::WebUtil->new( { type => 'taskbot',
                                                 idname => 'taskid',
-                                                fields => [ qw( cmd color title link body status priority duration category recurrence scheduled ) ],
+                                                fields => [ qw( cmd color title link sound body status priority duration category recurrence scheduled ) ],
                                             } );
 
 my $taskbot      = App::Wubot::Util::Taskbot->new();
@@ -135,6 +135,8 @@ sub update_task_preproc {
 
     if ( $task_h->{status} && $task_h->{status} eq "DONE" ) {
 
+        $task_h->{lastdone} = time;
+
         my ( $task_orig ) = $util->get_item( $task_h->{taskid}, \&get_item_postproc );
 
         if ( $task_orig->{recurrence} ) {
@@ -233,7 +235,7 @@ sub tasks {
         $self->cmd( $id, $cmd );
     }
 
-    $self->stash( 'headers', [qw/timer cmd status time dur title ed link priority rec category lastupdate/ ] );
+    $self->stash( 'headers', [qw/timer cmd status time dur title ed link priority rec done category lastupdate/ ] );
 
     my $now = time;
     my $start = $now + 15*60;

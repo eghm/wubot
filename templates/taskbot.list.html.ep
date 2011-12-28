@@ -146,12 +146,11 @@
           <td><a href='/taskbot/item/<%= $item->taskid %>'><%= $item->title %></a></td>
           <td width='1%'><% if ( $item->has_body ) { %><a href='/taskbot/edit/<%= $item->taskid %>'>-&gt;</a> <% } %> </td>
           <td width='1%'><% if ( $item->link ) { %><a href='<%= $item->link %>'>(*)</a><% } %></td>
-          <td width='3%'>
-            <%== $item->priority_display %>
-          </td>
+          <td width='3%'><%== $item->priority_display %></td>
           <td bgcolor="<%= $item->recurrence_color %>" width='1%'><%= $item->recurrence %></td>
+          <td align='center' width='6%' bgcolor="<%= $item->lastdone_color %>"><% if ( $item->lastdone ) { %> [ <%=  $item->lastdone_age %> ] <% } %> </td>
           <td align="center" width='10%'><% for my $cat ( split /\./, $item->category ) { %><a href="?category=<%= $cat %>"><%= $cat %></a> <% } %></td>
-          <td width='6%' bgcolor="<%= $item->lastupdate_color %>"><%=  $item->age %></td>
+          <td align='right' width='6%' bgcolor="<%= $item->lastupdate_color %>"><%=  $item->age %></td>
 
           
         </tr>

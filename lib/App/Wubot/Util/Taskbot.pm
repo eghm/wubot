@@ -235,6 +235,34 @@ sub get_path {
     }
 }
 
+# sub mark_done {
+#     my ( $self, $taskid ) = @_;
+
+#     my $task_h = $self->get_task( $taskid );
+
+#     return unless $task_h->{status} eq "TODO";
+
+#     $task_h->{status}   = "DONE";
+#     $task_h->{lastdone} = time;
+
+#     if ( $task_h->{recurrence} ) {
+#         $task_h->{status} = "TODO";
+
+#         my $next = $timelength->get_seconds( $task_h->{recurrence} );
+
+#         if ( $task_orig->{scheduled} ) {
+#             $task_h->{scheduled} = $task_orig->{scheduled} + $next;
+#         }
+#     }
+
+#     $self->sql->update( 'taskbot',
+#                         $task_h,
+#                         { taskid => $task_h->{taskid} }
+#                     );
+
+#     return $task_h;
+# }
+
 __PACKAGE__->meta->make_immutable;
 
 1;
