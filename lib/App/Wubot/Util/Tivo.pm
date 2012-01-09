@@ -259,10 +259,10 @@ sub monitor {
         $self->logger->info( "Adding tivo commands to queue for $item->{name}" );
 
         # add command to download item from tivo
-        $self->queue->enqueue( $item->{curl_cmd}, 'tivo' );
+        $self->queue->enqueue( $item->{curl_cmd}, 'tivo',  "fetch $item->{name}" );
 
         # add command to convert .tivo to .mpg
-        $self->queue->enqueue( $item->{tivodecode_cmd}, 'tivo' );
+        $self->queue->enqueue( $item->{tivodecode_cmd}, 'tivo', "decode $item->{name}" );
 
         $self->logger->info( "Checking directory: $item->{directory}" );
         unless( -d $item->{directory} ) {
