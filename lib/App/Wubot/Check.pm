@@ -218,7 +218,8 @@ sub check {
             $message->{subject} = "Timed out after $timeout seconds";
         }
         else {
-            $self->logger->error( "CRITICAL: $error" );
+            my $key = $self->key;
+            $self->logger->error( "CRITICAL: $key: $error" );
             $message->{subject} = "CRITICAL: $error";
         }
 
@@ -268,11 +269,14 @@ sub _react_results {
         return;
     }
 
-    # set the monitor config in the message
-    my $skip = { react => 1 };
-    for my $key ( keys %{ $config } ) {
-        next if $skip->{ $key };
-        $react->{"config.$key"} = $config->{$key};
+    # set the monitor config in the message.  don't overwrite config
+    # in the XMPP plugin
+    unless ( $config->{plugin} &&  $config->{plugin} eq 'App::Wubot::Plugin::XMPP' ) {
+        my $skip = { react => 1 };
+        for my $key ( keys %{ $config } ) {
+            next if $skip->{ $key };
+            $react->{"config.$key"} = $config->{$key};
+        }
     }
 
     unless ( ref $react eq "HASH" ) {
