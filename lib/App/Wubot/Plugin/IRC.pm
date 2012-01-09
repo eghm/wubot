@@ -77,7 +77,10 @@ sub check {
 
                                                $channel =~ s|^\#||;
 
-                                               $self->reactor->( { subject  => "$channel: $text",
+                                               my $subject = "$channel: $text";
+                                               utf8::decode( $subject );
+
+                                               $self->reactor->( { subject  => $subject,
                                                                    text     => $text,
                                                                    channel  => $channel,
                                                                    message  => $text,
@@ -94,7 +97,10 @@ sub check {
                                                my $user = $ircmsg->{prefix};
                                                $user =~ s|\!.*||;
 
-                                               $self->reactor->( { subject  => "private: $text",
+                                               my $subject = "private: $text";
+                                               utf8::decode( $subject );
+
+                                               $self->reactor->( { subject  => $subject,
                                                                    text     => $text,
                                                                    message  => $text,
                                                                    username => $user,
