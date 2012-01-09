@@ -4,12 +4,16 @@ use Moose;
 # VERSION
 
 use POSIX qw(strftime);
+use Sys::Hostname qw();
 
 my $growl_enabled = 1;
 eval "use Growl::Tiny";  ## no critic (ProhibitStringyEval)
 if ( $@ ) { $growl_enabled = 0 }
 
 use App::Wubot::Logger;
+
+my $hostname = Sys::Hostname::hostname();
+$hostname =~ s|\..*$||;
 
 sub react {
     my ( $self, $message, $config ) = @_;
@@ -78,7 +82,7 @@ sub react {
 
     $notification->{results} = Growl::Tiny::notify( $notification );
 
-    $message->{growl} = $notification;
+    $message->{growl}->{$hostname} = $notification;
 
     return $message;
 }
