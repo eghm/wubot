@@ -71,19 +71,20 @@ has 'schema'   => ( is      => 'ro',
                     isa     => 'HashRef',
                     lazy    => 1,
                     default => sub {
-                        return { id          => 'INTEGER PRIMARY KEY AUTOINCREMENT',
-                                 command     => 'TEXT',
-                                 queue       => 'VARCHAR(32)',
-                                 subject     => 'VARCHAR(256)',
-                                 status      => 'VARCHAR(16)',
-                                 started     => 'INTEGER',
-                                 added       => 'INTEGER',
-                                 ended       => 'INTEGER',
-                                 processed   => 'INTEGER',
-                                 pid         => 'INTEGER',
-                                 exit_status => 'INTEGER',
-                                 exit_signal => 'INTEGER',
-                                 output      => 'TEXT',
+                        return { id           => 'INTEGER PRIMARY KEY AUTOINCREMENT',
+                                 command      => 'TEXT',
+                                 command_desc => 'VARCHAR(128)',
+                                 queue        => 'VARCHAR(32)',
+                                 subject      => 'VARCHAR(256)',
+                                 status       => 'VARCHAR(16)',
+                                 started      => 'INTEGER',
+                                 added        => 'INTEGER',
+                                 ended        => 'INTEGER',
+                                 processed    => 'INTEGER',
+                                 pid          => 'INTEGER',
+                                 exit_status  => 'INTEGER',
+                                 exit_signal  => 'INTEGER',
+                                 output       => 'TEXT',
                              };
                     },
                 );
@@ -126,7 +127,7 @@ sub build_command {
 }
 
 sub enqueue {
-    my ( $self, $command, $queue ) = @_;
+    my ( $self, $command, $queue, $desc ) = @_;
 
     unless ( $command ) {
         $self->logger->logdie( "ERROR: enqueue called with no command" );
@@ -136,9 +137,10 @@ sub enqueue {
         $self->logger->logdie( "ERROR: enqueue called with no queue" );
     }
 
-    my $results_h = { command    => $command,
-                      queue      => $queue,
-                      added      => time,
+    my $results_h = { command      => $command,
+                      queue        => $queue,
+                      added        => time,
+                      command_desc => $desc,
                   };
 
     $results_h->{id} = $self->sqlite->insert( 'command_queue',
@@ -318,7 +320,10 @@ sub monitor_queue {
         }
         else {
             $self->logger->debug( "Command succeeded" );
-            $command_h->{subject}   = "$command_h->{queue}: Command completed successfully";
+            $command_h->{subject}   = "$command_h->{queue}: Command completed OK";
+            if ( $command_h->{command_desc} ) {
+                $command_h->{subject} .= ": $command_h->{command_desc}";
+            }
             $command_h->{status}    = 'OK';
         }
 
@@ -351,7 +356,9 @@ sub monitor_queue {
 
             $self->spawn( $command_h->{id} );
 
-            $command_h->{subject} = "$command_h->{queue}: Spawned new command";
+            my $desc = $command_h->{command_desc} ? $command_h->{command_desc} : "new command";
+
+            $command_h->{subject} = "$command_h->{queue}: Spawned: $desc";
 
             push @messages, $command_h;
 
