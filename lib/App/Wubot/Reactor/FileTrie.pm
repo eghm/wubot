@@ -53,30 +53,20 @@ __END__
 
 =head1 NAME
 
-App::Wubot::Reactor::Dumper - display the contents of a field or an entire message
+App::Wubot::Reactor::FileTrie - store entire messages serialized using File::Trie
 
 
 =head1 SYNOPSIS
 
-  - name: dump message contents to stdout
-    plugin: Dumper
-
-  - name: display contents of message field 'x'
-    plugin: Dumper
-    config:
-      field: x
-
+  - name: store entire message using File::Trie
+    plugin: FielTrie
 
 =head1 DESCRIPTION
 
-Display the contents of a message field to stdout.  This is primary
-intended as a debugging tool, e.g. to see how a message looks at some
-point in the rule tree.
-
-If no configuration is specified, then the entire message will be
-displayed to stdout using YAML::Dump.  If a field is specified in the
-config, then the contents of that field will be dumped using
-YAML::Dump.
+This plugin stores each message in a separate file under
+~/wubot/triedb.  The filename for each message will come from the
+message checksum.  To prevent too many messages from being stored in a
+single subdirectory, the message is stored using File::Trie.
 
 =head1 SUBROUTINES/METHODS
 
