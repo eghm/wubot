@@ -22,11 +22,13 @@ sub react {
         $regexp = $config->{regexp};
     }
 
-    $field_data =~ m|$regexp|s;
-
     my $target_field = $config->{target_field} || $config->{field} || $config->{source_field};
 
-    $message->{ $target_field } = $1;
+    if ( $field_data =~ m|$regexp|s ) {
+        if ( $1 ) {
+            $message->{ $target_field } = $1;
+        }
+    }
 
     return $message;
 }
