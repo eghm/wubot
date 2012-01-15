@@ -373,7 +373,11 @@ sub checksum {
 
     return unless $message;
 
-    my $text = YAML::XS::Dump $message;
+    my $data = { %$message };
+    delete $data->{lastupdate};
+    delete $data->{status_count};
+
+    my $text = YAML::XS::Dump $data;
 
     utf8::encode( $text );
 
