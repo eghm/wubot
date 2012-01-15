@@ -32,7 +32,7 @@ App::Wubot::Reactor::CleanText - clean a field using a regexp
 
 =head1 SYNOPSIS
 
-  - name: remove tabless
+  - name: remove tables
     plugin: CleanText
     config:
       source_field: body
