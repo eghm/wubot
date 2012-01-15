@@ -1,12 +1,20 @@
 <style type="text/css">
 
 body {
-    background-color: #333333;
-    color: #cccccc;
+  font-style: normal;
+  font-variant: normal;
+  font-size: 10px;
+  font-weight: normal;
+  font-family: Anonymous Pro,Monaco,monospace;
+  font-smooth: never;
+  -webkit-font-smoothing: none;
+  text-rendering: optimizeLegibility;
+  background-color: #333333;
+  color: #cccccc;
 }
 
 a {
-  color: #cccccc;
+  color: #aaaacc;
   text-decoration: none;
 }
 
@@ -19,7 +27,6 @@ textarea {
 }
 
 table {
-  font-size: small;
   border-spacing: 0;
   border-collapse: collapse;
 }
@@ -35,7 +42,6 @@ td {
   padding: 4px;
   color: #cccccc;
 }
-
 
 th {
   background-color: purple;
@@ -68,11 +74,6 @@ th.priority {
 }
 th.scheduled, th.deadline, th.lastupdate {
   width: 12%;
-}
-
-pre {
-	font-size: 14px;
-    font-family: Anonymous Pro,Monaco,monospace;
 }
 
 </style>
