@@ -59,8 +59,8 @@ intended as a debugging tool, e.g. to see how a message looks at some
 point in the rule tree.
 
 If no configuration is specified, then the entire message will be
-displayed to stdout using YAML::Dump.  If a field is specified in the
-config, then the contents of that field will be dumped using
+displayed to stdout using YAML::XS::Dump.  If a field is specified in
+the config, then the contents of that field will be dumped using
 YAML::Dump.
 
 =head1 SUBROUTINES/METHODS
