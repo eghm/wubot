@@ -21,11 +21,13 @@ my $logger = Log::Log4perl::get_logger( 'default' );
 
 use App::Wubot::Config;
 use App::Wubot::Reactor;
-#use App::Wubot::Reactor::Voice;
 use App::Wubot::LocalMessageStore;
 use App::Wubot::Util::TimeLength;
+use App::Wubot::WubotX;
 
-#my $voice = App::Wubot::Reactor::Voice->new();
+# load plugin library paths
+my $wubotx = App::Wubot::WubotX->new();
+$wubotx->get_plugins();
 
 my $message_directory = "$ENV{HOME}/wubot/reactor";
 

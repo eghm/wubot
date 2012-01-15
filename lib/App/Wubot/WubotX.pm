@@ -73,11 +73,13 @@ sub get_webui {
 sub link_templates {
     my ( $self ) = @_;
 
+  PLUGIN:
     for my $plugin ( @{ $self->plugins } ) {
 
         my @templates;
 
         my $directory = join( "/", $self->root, $plugin, "templates" );
+        next PLUGIN unless -d $directory;
 
         my $dir_h;
         opendir( $dir_h, $directory ) or die "Can't opendir $directory: $!";

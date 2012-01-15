@@ -8,6 +8,9 @@ use Mojo::Base 'Mojolicious';
 
 use YAML::XS;
 
+use App::Wubot::WubotX;
+my $wubotx = App::Wubot::WubotX->new();
+
 my $config_file = join( "/", $ENV{HOME}, "wubot", "config", "webui.yaml" );
 
 my $config = YAML::XS::LoadFile( $config_file );
@@ -30,10 +33,34 @@ sub startup {
 
             my $method = $config->{plugins}->{$plugin}->{$route};
 
+            print "ROUTE: $route => $plugin_name#$method\n";
             $r->route( $route )->to( "$plugin_name#$method" );
 
         }
     }
+
+    # WubotX extensions, eventually to replace the code above
+    $wubotx->link_templates();
+    my $extensions = $wubotx->get_webui();
+
+    print YAML::XS::Dump { lib => \@INC };
+
+    for my $plugin ( keys %{ $extensions } ) {
+
+        my $plugin_name = join( "", ucfirst( $plugin ), "Web" );
+
+        print "PLUGIN: $plugin => $plugin_name\n";
+
+        for my $route ( keys %{ $extensions->{$plugin} } ) {
+
+            my $method = $extensions->{$plugin}->{$route};
+
+            print "ROUTEX: $route => $plugin_name#$method\n";
+            $r->route( $route )->to( "$plugin_name#$method" );
+
+        }
+    }
+
 }
 
 1;

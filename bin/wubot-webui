@@ -18,7 +18,6 @@ Please visit http://mojolicio.us for detailed installation instructions.
 
 EOF
 
-
 # Application
 $ENV{MOJO_APP} ||= 'App::Wubot::Web';
 

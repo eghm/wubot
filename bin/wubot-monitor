@@ -25,6 +25,11 @@ use App::Wubot::Check;
 use App::Wubot::Config;
 use App::Wubot::LocalMessageStore;
 use App::Wubot::Util::TimeLength;
+use App::Wubot::WubotX;
+
+# load plugin library paths
+my $wubotx = App::Wubot::WubotX->new();
+$wubotx->get_plugins();
 
 my $cache_directory = "$ENV{HOME}/wubot/cache";
 unless ( -d $cache_directory ) {
