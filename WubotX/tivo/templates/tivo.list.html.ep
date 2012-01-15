@@ -12,17 +12,17 @@
     <%= include 'nav' %>
 
     |
-    <%= $status->{folders} %> folders
+    <%= $info->{folders} %> folders
     |
-    <%= $status->{shows} %> shows
+    <%= $info->{shows} %> shows
     |
-    <%= $status->{size} %> GB
+    <%= $info->{size} %> GB
     |
-    <font color="darkpink"><%= $status->{percent} %> %</font>
+    <font color="darkpink"><%= $info->{percent} %> %</font>
     |
-    updated: <%= strftime( '%Y-%m-%d %H:%M', localtime( $status->{lastupdate} ) ) %>
+    updated: <%= strftime( '%Y-%m-%d %H:%M', localtime( $info->{lastupdate} ) ) %>
     |
-    age: <%= $status->{age} %>
+    age: <%= $info->{age} %>
 
     <table width='100%' class='sortable autostripe'>
       <thead>

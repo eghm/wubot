@@ -129,7 +129,7 @@ sub list {
 
     $self->stash( items => \@items );
     $self->stash( headers => [ qw( mark dl enc lib name episode epnum size recorded hd duration updated ) ] );
-    $self->stash( status  => $lastupdate_h );
+    $self->stash( info  => $lastupdate_h );
 
     $self->render( template => 'tivo.list' );
 
