@@ -105,7 +105,7 @@
             <% if ( $edit ) { %>
               <textarea name="body" rows="40" cols="120" style="background-color: <%= $item->display_color %>; border: 0px"><%= $item->body %></textarea>
             <% } else { %>
-              <table width="50%"><tr><td style="border-width: 0px 0px 0 0;"><%== $item->body %></td></tr></table>
+              <table width="70%"><tr><td style="border-width: 0px 0px 0 0;"><%== $item->body %></td></tr></table>
             <% } %>
           </td>
         </tr>

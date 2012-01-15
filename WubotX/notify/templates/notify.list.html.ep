@@ -8,7 +8,7 @@
 
     <%= include 'nav' %>
 
-    <font size="-1" color="#FF00FF">
+    <font color="#FF00FF">
       |
       <a href="/notify"><%= $count %> unread</a>
       |
