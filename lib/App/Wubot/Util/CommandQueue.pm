@@ -315,16 +315,17 @@ sub monitor_queue {
 
         if ( $command_h->{exit_status} ) {
             $self->logger->debug( "Command failed" );
-            $command_h->{subject}   = "$command_h->{queue}: Command failed: $command_h->{exit_status}";
+            $command_h->{subject}   = "$command_h->{queue}: Command FAIL: $command_h->{exit_status}";
             $command_h->{status}    = 'CRITICAL';
         }
         else {
             $self->logger->debug( "Command succeeded" );
-            $command_h->{subject}   = "$command_h->{queue}: Command completed OK";
-            if ( $command_h->{command_desc} ) {
-                $command_h->{subject} .= ": $command_h->{command_desc}";
-            }
+            $command_h->{subject}   = "$command_h->{queue}: Command OK";
             $command_h->{status}    = 'OK';
+        }
+
+        if ( $command_h->{command_desc} ) {
+            $command_h->{subject} .= ": $command_h->{command_desc}";
         }
 
         # mark item as processed
