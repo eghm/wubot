@@ -1,5 +1,6 @@
 ---
 id: INTEGER PRIMARY KEY AUTOINCREMENT
+checksum: VARCHAR(256)
 subject: TEXT
 subject_text: TEXT
 body: TEXT
