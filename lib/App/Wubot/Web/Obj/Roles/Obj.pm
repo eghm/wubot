@@ -23,6 +23,15 @@ has 'id'               => ( is => 'ro',
                             }
                         );
 
+has 'checksum'         => ( is => 'ro',
+                            isa => 'Maybe[Str]',
+                            lazy => 1,
+                            default => sub {
+                                my $self = shift;
+                                return $self->db_hash->{checksum};
+                            }
+                        );
+
 has 'sql'              => ( is      => 'ro',
                             isa     => 'App::Wubot::SQLite',
                             required => 1,
@@ -57,7 +66,12 @@ has 'color'            => ( is => 'ro',
                             lazy => 1,
                             default => sub {
                                 my $self = shift;
-                                return $self->db_hash->{color} || "black";
+
+                                if ( $self->db_hash->{color} ) {
+                                    return $self->db_hash->{color};
+                                }
+
+                                return 'black';
                             }
                         );
 
