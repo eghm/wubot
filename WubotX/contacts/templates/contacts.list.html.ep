@@ -1,0 +1,19 @@
+<html>
+  <head>
+    <title>Contact List</title>
+    <script type='text/javascript' src='/sort/common.js'></script>
+    <script type='text/javascript' src='/sort/css.js'></script>
+    <script type='text/javascript' src='/sort/standardista-table-sorting.js'></script>
+    <%= include 'css' %>
+  </head>
+  <body bgcolor="#073642">
+
+    <%= include 'nav' %>
+
+    <hr>
+
+    <input type="image" src="/images/wubot.png" border=0 height=32 width=32 alt="submit">
+
+
+  </body>
+</html>
