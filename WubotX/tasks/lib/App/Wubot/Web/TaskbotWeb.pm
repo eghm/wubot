@@ -28,7 +28,7 @@ use App::Wubot::Web::Obj::TaskObj;
 
 my $util    = App::Wubot::Util::WebUtil->new( { type => 'taskbot',
                                                 idname => 'taskid',
-                                                fields => [ qw( cmd color title link sound body status priority duration category recurrence scheduled ) ],
+                                                fields => [ qw( cmd color title link sound body status task_status priority duration category recurrence scheduled ) ],
                                             } );
 
 my $taskbot      = App::Wubot::Util::Taskbot->new();
@@ -132,6 +132,10 @@ sub cmd {
 
 sub update_task_preproc {
     my ( $self, $task_h ) = @_;
+
+    if ( $task_h->{task_status} ) {
+        $task_h->{status} = $task_h->{task_status};
+    }
 
     if ( $task_h->{status} && $task_h->{status} eq "DONE" ) {
 
@@ -247,7 +251,7 @@ sub tasks {
                   limit     => 200,
               };
 
-    my $status = $util->check_session( $self, 'status' );
+    my $status = $util->check_session( $self, 'task_status' );
     if ( $status ) {
         unless ( $status eq "any" ) {
             $query->{where}->{status} = uc( $status );
@@ -430,8 +434,8 @@ sub ical {
                    order     => 'scheduled',
                };
 
-    if ( $self->param( 'status' ) ) {
-        $select->{where} = { status => $self->param( 'status' ) };
+    if ( $self->param( 'task_status' ) ) {
+        $select->{where} = { status => $self->param( 'task_status' ) };
     }
 
     $taskbot->sql->select( $select );

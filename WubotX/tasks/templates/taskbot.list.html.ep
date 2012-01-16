@@ -11,7 +11,7 @@
 
     <%= include 'nav' %>
 
-    <font size="-1" color="#FF00FF">
+    <font color="#FF00FF">
       |
       <a href="?scheduled=any">all</a>
       |
@@ -25,9 +25,9 @@
       <a href="?category="><%= $category %></a>
       |
       <% } %>
-      <a href="?status=todo">todo</a>
+      <a href="?task_status=todo">todo</a>
       |
-      <a href="?status=done">done</a>
+      <a href="?task_status=done">done</a>
       |
       <a href="?norecur=1">-</a>
       <a href="?norecur=0">+</a>
@@ -42,7 +42,7 @@
         <td width='50' class="categories">
           <table>
             <% for my $category ( @{ $categories } ) { %>
-              <tr bgcolor='<%= $category->{color} %>'><td><a href='/taskbot/list?category=<%= $category->{category} %>&scheduled=any&status=todo'><%= $category->{category} %></a></td><td><%= $category->{count} %></td></tr>
+              <tr bgcolor='<%= $category->{color} %>'><td><a href='/taskbot/list?category=<%= $category->{category} %>&scheduled=any&task_status=todo'><%= $category->{category} %></a></td><td><%= $category->{count} %></td></tr>
             <% } %>
           </table>
           <hr>
@@ -132,17 +132,12 @@
             <% $last_date = $date; %>
           <% } %>
           
-        <tr bgcolor="<%= $item->display_color %>">
+        <tr height=10 bgcolor="<%= $item->display_color %>">
 
-          <td align="right" bgcolor="<%= $item->timer_color %>" width='10%'>
-            <%==  $item->timer_display %>
-          </td>
-          <td width='8%' align="right"><input type="text" name="cmd_<%= $item->taskid %>" size="8" style="background-color: <%= $item->display_color %>; border: 1px solid black"></td>
-
-          <td align="right"><a href="/taskbot/item/<%= $item->taskid %>?status=DONE&recurrence=<%= $item->recurrence %>&redir=list"><%== $item->status_pretty %></a></td>
-          <td align="right" width='7%'>
-            <%=  $item->scheduled_time %>
-          </td>
+          <td align="right" bgcolor="<%= $item->timer_color %>" width='10%'><%==  $item->timer_display %></td>
+          <td width='8%' align="right"><input type="text" name="cmd_<%= $item->taskid %>" size="8" style="background-color: <%= $item->display_color %>;"></td>
+          <td align="right"><a href="/taskbot/item/<%= $item->taskid %>?task_status=DONE&recurrence=<%= $item->recurrence %>&redir=list"><%== $item->status_pretty %></a></td>
+          <td align="right" width='7%'><%=  $item->scheduled_time %></td>
           <% if ( $item->duration ) { %>
             <td align="right" width='3%' bgcolor='black' style='border: 1px solid #6e1917'><%= $item->duration %></td>
           <% } else { %>

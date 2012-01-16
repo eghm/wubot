@@ -68,17 +68,14 @@
           <td width='1%'><%= $item->{errmsg} ? 'err' : $item->{downloaded} ? 'y' : '' %></td>
           <td width='1%'><%= $item->{errmsg} ? 'err' : $item->{decoded} ? 'y' : '' %></td>
           <td width='1%'><%= $item->{library} ? 'y' : '' %></td>
-
           <td width='20%'><a title="<%= $item->{description} %>: id=<%= $item->{tivoid} %>" href="/tivo/item/<%= $item->{tivoid} %>"><%= $item->{name} %></a></td>
           <td width='20%'><p title="<%= $item->{description} %>"><%= $item->{episode} %></p></td>
           <td width='3%'><%= $item->{episode_num} %></td>
-
           <td width='3%'><%= $item->{size} %></td>
           <td width='8%' bgcolor="<%= $item->{recorded_color} %>"><%=  $item->{recorded} ? strftime( '%Y-%m-%d %H:%M', localtime( $item->{recorded} ) ) : ""  %></td>
           <td width='1%'><%= $item->{hd} %></td>
           <td width='3%'><%= $item->{duration} %></td>
           <td width='8%'><%=  $item->{lastupdate} ? strftime( '%Y-%m-%d %H:%M', localtime( $item->{lastupdate} ) ) : ""  %></td>
-
         </tr>
         <% } %>
       </tbody>

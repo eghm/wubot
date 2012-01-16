@@ -167,7 +167,7 @@ has 'priority_display' => ( is => 'ro',
                                 my $link_minus = join( "=", $link, $self->priority - 5 );
                                 my $link_plus  = join( "=", $link, $self->priority + 5 );
 
-                                my $return = join( "\n",
+                                my $return = join( " ",
                                                    $self->priority,
                                                    "<a href='$link_minus'>-</a>",
                                                    "<a href='$link_plus'>+</a>",
@@ -341,7 +341,7 @@ has 'timer_display'    => ( is => 'ro',
                                 my $link_minus = join( "=", $link, $self->scheduled - 24*60*60 );
                                 my $link_plus  = join( "=", $link, $self->scheduled + 24*60*60 );
 
-                                my $return = join( "\n",
+                                my $return = join( " ",
                                                    $self->timer,
                                                    "<a href='$link_minus'>-</a>",
                                                    "<a href='$link_plus'>+</a>",
