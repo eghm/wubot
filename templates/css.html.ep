@@ -8,7 +8,6 @@ body {
   font-family: Anonymous Pro,Monaco,monospace;
   font-smooth: never;
   -webkit-font-smoothing: none;
-  text-rendering: optimizeLegibility;
   background-color: #333333;
   color: #cccccc;
 }
@@ -74,6 +73,25 @@ th.priority {
 }
 th.scheduled, th.deadline, th.lastupdate {
   width: 12%;
+}
+
+td.body {
+  font-size: 12px;
+  font-family: Monaco,monospace;
+}
+
+input {
+  border: 1px solid black;
+  height: 1.5em;
+  font-size: 10px;
+  font-family: Anonymous Pro,Monaco,monospace;
+  font-smooth: never;
+  -webkit-font-smoothing: none;
+  margin-top: -.5em;
+  margin-bottom: -.5em;
+  padding-top: -.5em;
+  padding-bottom: -.5em;
+
 }
 
 </style>
