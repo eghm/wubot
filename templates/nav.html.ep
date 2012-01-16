@@ -6,9 +6,9 @@
     |
     <a href="/tags">tags</a>
     |
-    <a href="/taskbot/list?scheduled=true&status=todo&category=">schedule</a>
+    <a href="/taskbot/list?scheduled=true&task_status=todo&category=">schedule</a>
     |
-    <a href="/taskbot/list?scheduled=false&status=todo&category=">todo</a>
+    <a href="/taskbot/list?scheduled=false&task_status=todo&category=">todo</a>
     |
     <a href="/taskbot/new">newtask</a>
     |
