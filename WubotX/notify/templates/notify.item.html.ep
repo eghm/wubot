@@ -101,7 +101,7 @@
 
         <tr height="100px">
           <td>body</td>
-          <td>
+          <td class="body">
             <% if ( $edit ) { %>
               <textarea name="body" rows="40" cols="120" style="background-color: <%= $item->display_color %>; border: 0px"><%= $item->body %></textarea>
             <% } else { %>
