@@ -4,6 +4,7 @@ use Moose;
 # VERSION
 
 use Class::Load qw/load_class/;
+use Sys::Hostname qw//;
 
 use App::Wubot::Logger;
 use App::Wubot::Conditions;
@@ -61,6 +62,8 @@ has 'conditions' => ( is => 'ro',
                       }
                   );
 
+my $hostname = Sys::Hostname::hostname();
+$hostname =~ s|\..*$||;
 
 =head1 SUBROUTINES/METHODS
 
@@ -109,6 +112,10 @@ sub react {
         }
 
         $self->logger->debug( " " x $depth, "- rule matched: $rule->{name}" );
+
+        eval {
+            push @{ $message->{wubot_rulelog}->{$hostname} }, $rule->{name};
+        };
 
         if ( $rule->{rules} ) {
             $self->react( $message, $rule->{rules}, $depth+1 );
