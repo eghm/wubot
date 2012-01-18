@@ -3,6 +3,8 @@ use Moose;
 
 use YAML::XS;
 
+use App::Wubot::Logger;
+
 has 'root' => ( is => 'ro',
                 isa => 'Str',
                 lazy => 1,
@@ -19,6 +21,14 @@ has 'plugins' => ( is => 'ro',
                    },
                );
 
+has 'logger'  => ( is => 'ro',
+                   isa => 'Log::Log4perl::Logger',
+                   lazy => 1,
+                   default => sub {
+                       return Log::Log4perl::get_logger( __PACKAGE__ );
+                   },
+               );
+
 sub get_plugins {
     my ( $self ) = @_;
 
@@ -32,11 +42,15 @@ sub get_plugins {
         next unless $entry;
         next if $entry =~ m|^\.|;
 
-        push @plugins, $entry;
+        my $plugin_path = join( "/", $directory, $entry );
+        if ( -d $plugin_path ) {
+            $self->logger->warn( "WubotX: loading: $entry" );
+            push @plugins, $entry;
+        }
 
-        my $lib_path = join( "/", $directory, $entry, "lib" );
+        my $lib_path = join( "/", $plugin_path, "lib" );
         if ( -d $lib_path ) {
-            print "Adding WubotX lib path: $lib_path\n";
+            $self->logger->debug( "WubotX: adding lib path: $lib_path" );
             push @INC, $lib_path;
         }
     }
@@ -64,7 +78,7 @@ sub get_webui {
         }
     }
 
-    print YAML::XS::Dump $webui_config;
+    $self->logger->debug( YAML::XS::Dump $webui_config );
 
     return $webui_config;
 
@@ -97,7 +111,7 @@ sub link_templates {
             next if -r "templates/$template";
 
             # hard-link the template
-            print "Linking template from plugin $plugin: $template\n";
+            $self->logger->error( "Linking template from plugin $plugin: $template" );
             system( "ln", "$directory/$template", "templates/" );
         }
 
