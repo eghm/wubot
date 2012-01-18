@@ -8,12 +8,16 @@ use Mojo::Base 'Mojolicious';
 
 use YAML::XS;
 
+use App::Wubot::Logger;
 use App::Wubot::WubotX;
+
 my $wubotx = App::Wubot::WubotX->new();
 
 my $config_file = join( "/", $ENV{HOME}, "wubot", "config", "webui.yaml" );
 
 my $config = YAML::XS::LoadFile( $config_file );
+
+my $logger = Log::Log4perl::get_logger( __PACKAGE__ );
 
 # This method will run once at server start
 sub startup {
@@ -33,7 +37,7 @@ sub startup {
 
             my $method = $config->{plugins}->{$plugin}->{$route};
 
-            print "ROUTE: $route => $plugin_name#$method\n";
+            $logger->info( "ROUTE: $route => $plugin_name#$method" );
             $r->route( $route )->to( "$plugin_name#$method" );
 
         }
@@ -43,19 +47,19 @@ sub startup {
     $wubotx->link_templates();
     my $extensions = $wubotx->get_webui();
 
-    print YAML::XS::Dump { lib => \@INC };
+    $logger->debug( YAML::XS::Dump { lib => \@INC } );
 
     for my $plugin ( keys %{ $extensions } ) {
 
         my $plugin_name = join( "", ucfirst( $plugin ), "Web" );
 
-        print "PLUGIN: $plugin => $plugin_name\n";
+        $logger->warn( "PLUGIN: $plugin => $plugin_name" );
 
         for my $route ( keys %{ $extensions->{$plugin} } ) {
 
             my $method = $extensions->{$plugin}->{$route};
 
-            print "ROUTEX: $route => $plugin_name#$method\n";
+            $logger->info( "ROUTEX: $route => $plugin_name#$method" );
             $r->route( $route )->to( "$plugin_name#$method" );
 
         }
