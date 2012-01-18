@@ -1,0 +1,4 @@
+---
+'/tasks': tasks
+'/ical': ical
+'/open/org/(.file)/(.link)': open
