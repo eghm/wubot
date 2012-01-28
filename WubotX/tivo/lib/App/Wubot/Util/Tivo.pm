@@ -213,11 +213,14 @@ sub check_status {
         }
     }
 
+    my $link = $item->{link};
+    $link =~ s|\'|%27|g;
+
     unless ( $item->{curl_cmd} ) {
         unless ( $item->{tivo_key} ) {
             $self->logger->logdie( "ERROR: tivo_key not found" );
         }
-        $update->{curl_cmd} =  "curl -S -s --digest -k -u 'tivo:$item->{tivo_key}' -c '$basedir/.cookies.txt' -o '$basedir/$info->{tivo}' '$item->{link}'",
+        $update->{curl_cmd} =  "curl -S -s --digest -k -u 'tivo:$item->{tivo_key}' -c '$basedir/.cookies.txt' -o '$basedir/$info->{tivo}' '$link'",
     }
 
     unless ( $item->{tivodecode_cmd} ) {

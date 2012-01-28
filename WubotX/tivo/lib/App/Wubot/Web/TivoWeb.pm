@@ -62,7 +62,7 @@ sub update_tivo {
 
     my $item = { tivoid => $tivoid };
 
-    for my $flag ( qw( color download errmsg downloaded decoded library enqueued ) ) {
+    for my $flag ( qw( color download errmsg downloaded decoded library enqueued curl_cmd tivodecode_cmd ) ) {
 
         if ( defined $self->param( $flag ) ) {
             $item->{$flag} = $self->param( $flag );

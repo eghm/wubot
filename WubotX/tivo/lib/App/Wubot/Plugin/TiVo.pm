@@ -57,12 +57,14 @@ sub check {
 
     my $now = time;
 
-    my @results = $self->tivo->monitor( 'tivo' );
+    eval {
+        my @results = $self->tivo->monitor( 'tivo' );
 
-    # if we got queue results, return them now
-    if ( scalar @results ) {
-        return { cache => $cache, react => \@results };
-    }
+        # if we got queue results, return them now
+        if ( scalar @results ) {
+            return { cache => $cache, react => \@results };
+        }
+    };
 
     # only fetch new data every 4 hours
     my $lastupdate = $cache->{last_fetch} || 0;
@@ -191,8 +193,15 @@ sub check {
 
         1;
     } or do {                   # catch
+        my $error = "ERROR: getting tivo info: $@";
 
-        $self->logger->logdie( "ERROR: getting tivo info: $@" );
+        $self->reactor->( { subject => $error,
+                            status  => 'CRITICAL',
+                        },
+                          $config
+                      );
+
+        $self->logger->fatal( $error );
     };
 
     exit 0;
