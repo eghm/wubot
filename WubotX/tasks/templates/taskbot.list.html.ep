@@ -109,7 +109,7 @@
             <% $before = 0; %>
           <% } %>
 
-          <% if ( $last_date ne $date && $date ge $yesterday || ! $item->scheduled && $count == 1 ) {  %>
+          <% if ( $last_date ne $date ) {  %>
             <tr bgcolor="black">
               <% for my $header ( @$headers ) { %>
                 <% if ( $header eq "timer" ) { %>
@@ -135,6 +135,7 @@
         <tr height=10 bgcolor="<%= $item->display_color %>">
 
           <td align="right" bgcolor="<%= $item->timer_color %>" width='10%'><%==  $item->timer_display %></td>
+          <td align="center"><%= $count %></td>
           <td width='8%' align="right"><input type="text" name="cmd_<%= $item->taskid %>" size="8" style="background-color: <%= $item->display_color %>;"></td>
           <td align="right"><a href="/taskbot/item/<%= $item->taskid %>?task_status=DONE&recurrence=<%= $item->recurrence %>&redir=list"><%== $item->status_pretty %></a></td>
           <td align="right" width='7%'><%=  $item->scheduled_time %></td>

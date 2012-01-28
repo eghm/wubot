@@ -239,7 +239,7 @@ sub tasks {
         $self->cmd( $id, $cmd );
     }
 
-    $self->stash( 'headers', [qw/timer cmd status time dur title ed link priority rec done category updated/ ] );
+    $self->stash( 'headers', [qw/timer # cmd status time dur title ed link priority rec done category updated/ ] );
 
     my $now = time;
     my $start = $now + 15*60;
@@ -247,7 +247,7 @@ sub tasks {
     my @tasks;
 
     my $query = { tablename => 'taskbot',
-                  order     => [ 'scheduled', 'priority DESC', 'lastupdate DESC' ],
+                  order     => [ 'scheduled', 'priority DESC', 'id DESC' ],
                   limit     => 200,
               };
 
@@ -255,6 +255,10 @@ sub tasks {
     if ( $status ) {
         unless ( $status eq "any" ) {
             $query->{where}->{status} = uc( $status );
+        }
+        if ( uc($status) eq "DONE" ) {
+            $query->{order} = [ 'scheduled DESC', 'priority DESC', 'id DESC' ];
+            print "ORDER: desc\n";
         }
     }
     else {
@@ -277,20 +281,27 @@ sub tasks {
     my $is_not_null = "IS NOT NULL";
 
     my $scheduled = $util->check_session( $self, 'scheduled' );
+    print "SCHEDULED: $scheduled\n";
     if ( $scheduled eq "false" ) {
         $query->{where}->{scheduled}  = undef;
     }
     elsif ( $scheduled eq "true" ) {
         $query->{where}->{scheduled}  = \$is_not_null;
-        $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
+        unless ( uc( $status ) eq "DONE" ) {
+            $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
+        }
     }
     elsif ( $scheduled eq "future" ) {
         $query->{where}->{scheduled}  = { ">=" => $now };
-        $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
+        unless ( uc( $status ) eq "DONE" ) {
+            $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
+        }
     }
     elsif ( $scheduled eq "past" ) {
         $query->{where}->{scheduled}  = { "<=" => $now };
-        $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
+        unless ( uc( $status ) eq "DONE" ) {
+            $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
+        }
     }
 
     $query->{callback} = sub {
