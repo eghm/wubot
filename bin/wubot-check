@@ -16,6 +16,11 @@ use App::Wubot::LocalMessageStore;
 use App::Wubot::Logger;
 use App::Wubot::SQLite;
 use App::Wubot::Check;
+use App::Wubot::WubotX;
+
+# load plugin library paths
+my $wubotx = App::Wubot::WubotX->new();
+$wubotx->get_plugins();
 
 my $logger = Log::Log4perl::get_logger( 'default' );
 
