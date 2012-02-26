@@ -2,7 +2,6 @@
 <html>
   <head>
     <title>.:<%= $item->title %>:.</title>
-    <meta http-equiv="refresh" content="<%= 180 + int(rand(60)) %>">
     <%= include 'css' %>
   </head>
   <body bgcolor=black>

@@ -246,9 +246,11 @@ sub tasks {
 
     my @tasks;
 
+    my $limit = $self->param( 'limit' ) || 100;
+
     my $query = { tablename => 'taskbot',
                   order     => [ 'scheduled', 'priority DESC', 'id DESC' ],
-                  limit     => 200,
+                  limit     => $limit,
               };
 
     my $status = $util->check_session( $self, 'task_status' );
