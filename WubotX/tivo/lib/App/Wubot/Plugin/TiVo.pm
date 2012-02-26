@@ -69,7 +69,7 @@ sub check {
     # only fetch new data every 4 hours
     my $lastupdate = $cache->{last_fetch} || 0;
     my $age = time - $lastupdate;
-    return if $age < 4*60*60;
+    return if $age < 3600;
     $cache->{last_fetch} = time;
 
     # todo: forking plugin fu to prevent running more than one at once
