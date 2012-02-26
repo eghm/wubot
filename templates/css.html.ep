@@ -1,9 +1,9 @@
 <style type="text/css">
-
+  
 body {
   font-style: normal;
   font-variant: normal;
-  font-size: 10px;
+  font-size: 10;
   font-weight: normal;
   font-family: Anonymous Pro,Monaco,monospace;
   font-smooth: never;
@@ -17,15 +17,13 @@ a {
   text-decoration: none;
 }
 
-input {
-  color: #cccccc;
-}
 
 textarea {
   color: #cccccc;
 }
 
 table {
+  font-size: 10;
   border-spacing: 0;
   border-collapse: collapse;
 }
@@ -76,14 +74,15 @@ th.scheduled, th.deadline, th.lastupdate {
 }
 
 td.body {
-  font-size: 12px;
+  font-size: 10;
   font-family: Monaco,monospace;
 }
 
 input {
+  color: #cccccc;
   border: 1px solid black;
   height: 1.5em;
-  font-size: 10px;
+  font-size: 10;
   font-family: Anonymous Pro,Monaco,monospace;
   font-smooth: never;
   -webkit-font-smoothing: none;
@@ -91,7 +90,6 @@ input {
   margin-bottom: -.5em;
   padding-top: -.5em;
   padding-bottom: -.5em;
-
 }
 
 </style>

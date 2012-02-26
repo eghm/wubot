@@ -14,12 +14,15 @@
     |
     <a href="/tasks">tasks</a>
     |
+    <a href="/contacts/list">contacts</a>
+    |
     <a href="/tivo/list">tivo</a>
     |
     <a href="/graphs">graphs</a>
     |
     <%= strftime( '%a %b %d %l:%M %p', localtime( time ) ); %>
     |
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    
   </font>
 
