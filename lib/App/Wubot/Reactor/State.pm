@@ -175,7 +175,17 @@ sub monitor {
   FILE:
     for my $entry ( sort @files ) {
 
-        my $cache = YAML::XS::LoadFile( "$directory/$entry" );
+        my $cache;
+        my $path = "$directory/$entry";
+
+        eval {                          # try
+            $cache = YAML::XS::LoadFile( $path );
+            1;
+        } or do {                       # catch
+            $self->logger->error( "ERROR: unable to load cache file: $path" );
+            next FILE;
+        };
+
 
       KEY:
         for my $key ( sort keys %{ $cache } ) {
