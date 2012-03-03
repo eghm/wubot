@@ -206,7 +206,7 @@ sub open {
 
     my ( $path, $filename ) = $self->get_path( $taskid );
 
-    my $emacs_foo = qq{ (progn (org-open-link-from-string "[[$path]]" )(pop-to-buffer "$filename")(delete-other-windows)(org-todo)(save-buffer)(raise-frame)) };
+    my $emacs_foo = qq{ (progn (org-open-link-from-string "[[$path]]" )(pop-to-buffer "$filename")(delete-other-windows)(save-buffer)(raise-frame)) };
 
     my $command = qq(emacsclient --socket-name /tmp/emacs501/server -e '$emacs_foo' &);
 
