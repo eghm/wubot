@@ -32,54 +32,54 @@ instance through the reactor.
 
 =cut
 
-has 'key'      => ( is => 'ro',
-                    isa => 'Str',
-                    required => 1,
-                );
+has 'key'               => ( is => 'ro',
+                             isa => 'Str',
+                             required => 1,
+                         );
 
-has 'class'      => ( is => 'ro',
-                      isa => 'Str',
-                      required => 1,
-                  );
+has 'class'             => ( is => 'ro',
+                             isa => 'Str',
+                             required => 1,
+                         );
 
-has 'instance'   => ( is      => 'ro',
-                      lazy    => 1,
-                      default => sub {
-                          my $self = shift;
-                          my $class = $self->class;
+has 'instance'          => ( is      => 'ro',
+                             lazy    => 1,
+                             default => sub {
+                                 my $self = shift;
+                                 my $class = $self->class;
 
-                          Class::Load::load_class( $class );
-                          if ( $@ ) {
-                              die "ERROR: loading class: $class => $@";
-                          }
-                          return $class->new( key        => $self->key,
-                                              class      => $self->class,
-                                              cache_file => $self->cache_file,
-                                              reactor    => $self->reactor,
-                                          );
-                      },
-                  );
+                                 Class::Load::load_class( $class );
+                                 if ( $@ ) {
+                                     die "ERROR: loading class: $class => $@";
+                                 }
+                                 return $class->new( key        => $self->key,
+                                                     class      => $self->class,
+                                                     cache_file => $self->cache_file,
+                                                     reactor    => $self->reactor,
+                                                 );
+                             },
+                         );
 
-has 'cache_file' => ( is => 'ro',
-                      isa => 'Str',
-                      required => 1,
-                  );
+has 'cache_file'        => ( is => 'ro',
+                             isa => 'Str',
+                             required => 1,
+                         );
 
-has 'logger'  => ( is => 'ro',
-                   isa => 'Log::Log4perl::Logger',
-                   lazy => 1,
-                   default => sub {
-                       return Log::Log4perl::get_logger( __PACKAGE__ );
-                   },
-               );
+has 'logger'            => ( is => 'ro',
+                             isa => 'Log::Log4perl::Logger',
+                             lazy => 1,
+                             default => sub {
+                                 return Log::Log4perl::get_logger( __PACKAGE__ );
+                             },
+                         );
 
-has 'reactor_queue' => ( is => 'ro',
-                         isa => 'App::Wubot::LocalMessageStore',
-                         lazy => 1,
-                         default => sub {
-                             return App::Wubot::LocalMessageStore->new();
-                         }
-                     );
+has 'reactor_queue'     => ( is => 'ro',
+                             isa => 'App::Wubot::LocalMessageStore',
+                             lazy => 1,
+                             default => sub {
+                                 return App::Wubot::LocalMessageStore->new();
+                             }
+                         );
 
 has 'reactor_queue_dir' => ( is => 'ro',
                              isa => 'Str',
@@ -88,28 +88,26 @@ has 'reactor_queue_dir' => ( is => 'ro',
                              },
                          );
 
-has 'reactor'   => ( is => 'ro',
-                     isa => 'CodeRef',
-                     lazy => 1,
-                     default => sub {
-                         my ( $self ) = @_;
+has 'reactor'           => ( is => 'ro',
+                             isa => 'CodeRef',
+                             lazy => 1,
+                             default => sub {
+                                 my ( $self ) = @_;
 
-                         return sub {
-                             my ( $message, $config ) = @_;
+                                 return sub {
+                                     my ( $message, $config ) = @_;
+                                     $self->_react_results( $message, $config );
+                                 };
+                             },
+                         );
 
-                             $self->_react_results( $message, $config );
-
-                         };
-                     },
-                 );
-
-has 'wubot_reactor' => ( is => 'ro',
-                         isa => 'App::Wubot::Reactor',
-                         lazy => 1,
-                         default => sub {
-                             App::Wubot::Reactor->new();
-                         },
-                     );
+has 'wubot_reactor'     => ( is => 'ro',
+                             isa => 'App::Wubot::Reactor',
+                             lazy => 1,
+                             default => sub {
+                                 App::Wubot::Reactor->new();
+                             },
+                         );
 
 
 =head1 SUBROUTINES/METHODS
