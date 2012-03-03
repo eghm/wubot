@@ -246,7 +246,7 @@ sub tasks {
 
     my @tasks;
 
-    my $limit = $self->param( 'limit' ) || 100;
+    my $limit = $self->param( 'limit' ) || 200;
 
     my $query = { tablename => 'taskbot',
                   order     => [ 'scheduled', 'priority DESC', 'id DESC' ],
@@ -337,19 +337,19 @@ sub tasks {
                          } );
     $self->stash( 'categories', \@categories );
 
-    my @mailboxes;
-    $sqlite_notify->select( { fields => 'mailbox, lastupdate, count(*) as count',
-                              tablename => 'notifications',
-                              group => 'mailbox',
-                              order => 'lastupdate DESC, count DESC',
-                              where => { seen => \$is_null },
-                              callback => sub {
-                                  my $row = shift;
-                                  $row->{color} = $timelength->get_age_color( $now - $row->{lastupdate} );
-                                  push @mailboxes, $row;
-                              },
-                          } );
-    $self->stash( 'mailboxes', \@mailboxes );
+    # my @mailboxes;
+    # $sqlite_notify->select( { fields => 'mailbox, lastupdate, count(*) as count',
+    #                           tablename => 'notifications',
+    #                           group => 'mailbox',
+    #                           order => 'lastupdate DESC, count DESC',
+    #                           where => { seen => \$is_null },
+    #                           callback => sub {
+    #                               my $row = shift;
+    #                               $row->{color} = $timelength->get_age_color( $now - $row->{lastupdate} );
+    #                               push @mailboxes, $row;
+    #                           },
+    #                       } );
+    # $self->stash( 'mailboxes', \@mailboxes );
 
     $self->render( template => 'taskbot.list' );
 

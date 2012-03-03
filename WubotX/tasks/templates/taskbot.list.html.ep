@@ -45,12 +45,6 @@
               <tr bgcolor='<%= $category->{color} %>'><td><a href='/taskbot/list?category=<%= $category->{category} %>&scheduled=any&task_status=todo'><%= $category->{category} %></a></td><td><%= $category->{count} %></td></tr>
             <% } %>
           </table>
-          <hr>
-          <table>
-            <% for my $mailbox ( @{ $mailboxes } ) { %>
-              <tr bgcolor='<%= $mailbox->{color} %>'><td><a href='/notify?mailbox=<%= $mailbox->{mailbox} %>'><%= $mailbox->{mailbox} %></a></td><td><%= $mailbox->{count} %></td></tr>
-            <% } %>
-          </table>
         </td>
 
         <td>
