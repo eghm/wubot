@@ -124,6 +124,10 @@ sub get_lines {
 
     my $path = $self->path;
 
+    unless ( $path ) {
+        $self->logger->logconfess( "FATAL: FileTail: no path set" );
+    }
+
     unless ( -r $path ) {
         $self->reset_callback->( "path not readable: $path" );
         return;

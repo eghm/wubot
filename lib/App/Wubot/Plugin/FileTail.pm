@@ -35,11 +35,17 @@ with 'App::Wubot::Plugin::Roles::Plugin';
 sub init {
     my ( $self, $inputs ) = @_;
 
+    if ( $inputs->{config}->{path} ) {
+        $self->path( $inputs->{config}->{path} );
+    }
+    else {
+        $self->logger->logdie( "ERROR: no path found in config" );
+    }
+
      if ( exists $inputs->{config}->{detect_rename} ) {
          $self->tail->detect_rename( $inputs->{config}->{detect_rename} );
      }
 
-    $self->path( $inputs->{config}->{path} );
 
     my $ignore;
     if ( $inputs->{config}->{ignore} ) {
