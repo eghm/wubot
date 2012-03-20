@@ -85,7 +85,9 @@ sub react {
     $self->logger->debug( "COMMAND: $command\n" );
 
     $command =~ s|\\|\\\\|g;
-    $command =~ s|\>|\\>|g;
+
+    # wtf?
+    #$command =~ s|\>|\\>|g;
 
     if ( $config->{command_noresults} ) {
         $message->{command_noresults} = 1;
