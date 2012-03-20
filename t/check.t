@@ -216,9 +216,9 @@ my $cache_file = "$tempdir/storage.yaml";
         "Checking that check status is CRITICAL when plugin calls 'die'"
     );
 
-    is( $results->{react}->{subject},
-        "CRITICAL: Testing Error",
-        "Checking that subject contains error message"
+    like( $results->{react}->{subject},
+          qr/^CRITICAL: Testing Error/,
+          "Checking that subject contains error message"
     );
 
 }
