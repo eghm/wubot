@@ -62,6 +62,10 @@ has 'conditions' => ( is => 'ro',
                       }
                   );
 
+# global cache for external rules file contents.  this is shared
+# between all objects.
+my $cache;
+
 my $hostname = Sys::Hostname::hostname();
 $hostname =~ s|\..*$||;
 
@@ -119,6 +123,35 @@ sub react {
 
         if ( $rule->{rules} ) {
             $self->react( $message, $rule->{rules}, $depth+1 );
+        }
+
+        if ( $rule->{rulesfile} || $rule->{rulesfile_field} ) {
+
+            my $rulesfile;
+            if ( $rule->{rulesfile} ) {
+                $rulesfile = $rule->{rulesfile};
+            }
+            elsif ( $rule->{rulesfile_field} ) {
+                $rulesfile = $message->{ $rule->{rulesfile_field} };
+                unless ( $rulesfile ) {
+                    $self->logger->error( "ERROR: rulesfile_field $rule->{rulesfile_field} not found on message" );
+                    next RULE;
+                }
+            }
+
+            unless ( $cache->{ $rulesfile } ) {
+                unless ( -r $rulesfile ) {
+                    $self->logger->error( "ERROR: rules file does not exist: $rulesfile" );
+                    next RULE;
+                }
+                $self->logger->warn( "Loading rules file: $rulesfile" );
+                my $rules = YAML::XS::LoadFile( $rulesfile );
+                $cache->{ $rulesfile } = $rules->{rules};
+                $self->logger->debug( "Loaded rules file into cache" );
+            }
+
+            $self->logger->debug( "Processing rules in $rulesfile" );
+            $self->react( $message, $cache->{ $rulesfile }, $depth+1 );
         }
 
         if ( $rule->{plugin} ) {
