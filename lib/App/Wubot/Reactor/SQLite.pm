@@ -22,16 +22,27 @@ has 'sqlite'  => ( is => 'ro',
 sub react {
     my ( $self, $message, $config ) = @_;
 
-    my $sqlite;
-
-    unless ( $config->{file} ) {
-        $self->logger->warn( "WARNING: sqlite reactor called with no 'file' specified" );
+    my $file;
+    if ( $config->{file} ) {
+        $file = $config->{file};
+    }
+    elsif ( $config->{file_field} ) {
+        if ( $message->{ $config->{file_field} } ) {
+            $file = $message->{ $config->{file_field} };
+        }
+        else {
+            $self->logger->error( "WARNING: sqlite reactor: field $config->{file_field} not defined on message" );
+            return $message;
+        }
+    }
+    else {
+        $self->logger->error( "WARNING: sqlite reactor called with no 'file' or 'file_field' specified" );
         return $message;
     }
 
     # if we don't have a sqlite object for this file, create one now
-    unless ( $self->sqlite->{ $config->{file} } ) {
-        $self->sqlite->{ $config->{file} } = App::Wubot::SQLite->new( { file => $config->{file} } );
+    unless ( $self->sqlite->{ $file } ) {
+        $self->sqlite->{ $file } = App::Wubot::SQLite->new( { file => $file } );
     }
 
     if ( $config->{update} ) {
@@ -39,10 +50,10 @@ sub react {
         for my $field ( keys %{ $config->{update} } ) {
             $update_where->{ $field } = $message->{ $field };
         }
-        $self->sqlite->{ $config->{file} }->insert_or_update( $config->{tablename}, $message, $update_where, $config->{schema} );
+        $self->sqlite->{ $file }->insert_or_update( $config->{tablename}, $message, $update_where, $config->{schema} );
     }
     else {
-        my $id = $self->sqlite->{ $config->{file} }->insert( $config->{tablename}, $message, $config->{schema} );
+        my $id = $self->sqlite->{ $file }->insert( $config->{tablename}, $message, $config->{schema} );
 
         if ( $config->{id_field} ) {
             $message->{ $config->{id_field} } = $id;
@@ -62,10 +73,28 @@ __END__
 
 App::Wubot::Reactor::SQLite - insert or update a message in a SQLite table row
 
+=head1 SYNOPSIS
+
+  - name: store message in SQLite database, schema in ~/wubot/schemas/mytable.yaml
+    plugin: SQLite
+    config:
+      file: /path/to/myfile.sql
+      tablename: mytable
+
+  - name: store in SQLite with schema specified in config
+    plugin: SQLite
+    config:
+      file: /path/to/somefile.sql
+      tablename: tablex
+      schema:
+        id: INTEGER PRIMARY KEY AUTOINCREMENT
+        subject: VARCHAR(256)
+        somefield: int
+
+
 =head1 DESCRIPTION
 
-TODO: More to come...
-
+more to come...
 
 =head1 SUBROUTINES/METHODS
 
