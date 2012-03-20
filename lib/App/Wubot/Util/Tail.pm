@@ -86,6 +86,12 @@ has 'position'  => ( is      => 'rw',
                      default => undef,
                  );
 
+has 'detect_rename' => ( is      => 'rw',
+                         isa     => 'Bool',
+                         default => 1,
+                     );
+
+
 =head1 SUBROUTINES/METHODS
 
 =over 8
@@ -100,6 +106,13 @@ a new one was re-opened.  In either case, the reset_callback is
 executed and is passed the appropriate text:
 
   filehandle was truncated: {$path}
+
+If the 'detect_rename' attribute is true (the default), then the
+filehandle will also be checked to see if it was renamed.  This will
+detect if the date on the file has increased even though the
+filehandle has nothing available to read.  In the event of a rename,
+the reset_callback will be executed.
+
   file was renamed: {$path}
 
 =cut
@@ -131,7 +144,7 @@ sub get_lines {
     my $was_truncated = $end_pos < $self->position ? 1 : 0;
     my $was_renamed   = $self->lastread && $mtime > $self->lastread ? 1 : 0;
 
-    if ( $was_truncated || $was_renamed ) {
+    if ( $was_truncated || ( $was_renamed && $self->detect_rename ) ) {
 
         if ( $was_truncated ) {
             $self->reset_callback->( "file was truncated: $path" );

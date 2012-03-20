@@ -35,6 +35,10 @@ with 'App::Wubot::Plugin::Roles::Plugin';
 sub init {
     my ( $self, $inputs ) = @_;
 
+     if ( exists $inputs->{config}->{detect_rename} ) {
+         $self->tail->detect_rename( $inputs->{config}->{detect_rename} );
+     }
+
     $self->path( $inputs->{config}->{path} );
 
     my $ignore;
@@ -92,9 +96,11 @@ App::Wubot::Plugin::FileTail - monitor a log file for all new lines
   ---
   delay: 30
   path: /var/log/messages
+  detect_rename: 0
   ignore:
     - my.ignore.string
     - some\sregexp\d+
+
 
 =head1 DESCRIPTION
 
@@ -110,6 +116,11 @@ an array of regular expressions.  If any of the regular expressions
 matches, then no message will be sent.  All patterns in the 'ignore'
 array will get joined together with '|' and evaluated as a single
 regular expression.
+
+If 'detect_rename' is set to a false value in your configuration, then
+any apparent rename of the file will be ignored.  This could be
+necessary in some cases for files being tailed on a network-mounted
+filesystem.  The default is to check for renames (detect_rename=1).
 
 
 =head1 SUBROUTINES/METHODS
