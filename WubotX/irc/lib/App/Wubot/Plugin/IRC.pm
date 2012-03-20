@@ -46,9 +46,24 @@ sub check {
     $self->logger->info( "$key: Setting up new connection" );
 
     $self->con->reg_cb( registered  => sub { $self->reactor->( { subject => "connected" }, $config );
-                                             $self->con->send_srv ("JOIN", $config->{channel} );
+                                             $self->logger->info( "Registered connection to IRC server" );
+
+                                             if ( $config->{channel} ) {
+                                                 if ( ref $config->{channel} eq "ARRAY" ) {
+                                                     for my $channel ( @{ $config->{channel} } ) {
+                                                         $self->logger->info( "Joining channel: $channel" );
+                                                         $self->con->send_srv ("JOIN", $channel );
+                                                     }
+                                                 }
+                                                 else {
+                                                     $self->logger->info( "Joining channel: $config->{channel}" );
+                                                     $self->con->send_srv ("JOIN", $config->{channel} );
+                                                 }
+                                             }
+
                                              $self->con->enable_ping( 60,
                                                                       sub {
+                                                                          $self->logger->info( "No ping response received from IRC server" );
                                                                           $self->reactor->(
                                                                               { subject => "ping: no response received",
                                                                                 status  => 'CRITICAL',
@@ -65,6 +80,7 @@ sub check {
                                                                  status  => 'CRITICAL',
                                                              },
                                                                $config );
+                                             $self->logger->info( "Lost connection to IRC server" );
                                              $self->initialized( undef );
                                          }
                     );
@@ -209,15 +225,24 @@ App::Wubot::Plugin::IRC - monitor IRC channels
   ---
   server: remotehost
   port: 6667
-  nick: wu
-  channel: #somechannel
+  nick: wubot
+  channel: '#somechannel'
+
+  ---
+  server: remotehost
+  port: 1234
+  nick: foo
+  channel:
+    - '#somechannel'
+    - '#otherchannel'
+    - '#yetanotherchannel'
 
   ---
   server: 127.0.0.1
-  port: 2345
-  nick: wu
-  channel: #ut3
-  password: supersecret
+  port: 1987
+  nick: dude
+  channel: '#bowling'
+  password: thedudeabides
 
 
 =head1 DESCRIPTION
