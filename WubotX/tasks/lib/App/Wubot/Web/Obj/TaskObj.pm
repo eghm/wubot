@@ -161,6 +161,8 @@ has 'priority_display' => ( is => 'ro',
 
                                 my $redir = $self->redir;
 
+                                return "" unless $self->taskid;
+
                                 my $link = join( "/", "/taskbot", "item", $self->taskid );
                                 $link .= "?redir=$redir&priority";
 
