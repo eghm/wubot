@@ -477,7 +477,7 @@ sub select {
         $rv = $sth->execute(@bind);
         1;
     } or do {
-        $self->logger->logcroak( "can't execute the query: $statement: $@" );
+        $self->logger->logcroak( "can't execute the query: $statement: $@ file=", $self->file );
     };
 
     my @entries;
