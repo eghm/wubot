@@ -2,10 +2,11 @@
 use strict;
 use warnings;
 
-use Test::Differences;
-use Test::More tests => 33;
-
 use File::Temp qw/ tempdir /;
+use Test::More;
+use Test::Routine;
+use Test::Routine::Util;
+use Test::Differences;
 
 BEGIN {
     if ( $ENV{HARNESS_ACTIVE} ) {
@@ -16,60 +17,74 @@ BEGIN {
 use App::Wubot::Logger;
 use App::Wubot::Reactor::Command;
 
-my $tempdir  = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
-$tempdir .= "/tmp";
+has reactor => (
+    is   => 'ro',
+    lazy => 1,
+    clearer => 'reset_reactor',
+    default => sub {
+        my ( $self ) = @_;
 
-my $queuedir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
-$queuedir .= "/queue";
+        my $tempdir  = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
+        $tempdir .= "/tmp";
 
-my $queuedb = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
-$queuedb .= "/commands.sql";
+        my $queuedir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
+        $queuedir .= "/queue";
 
-{
-    ok( my $command = App::Wubot::Reactor::Command->new( { logdir => $tempdir, queuedb => $queuedb } ),
-        "Creating new command reactor object"
-    );
+        my $queuedb = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
+        $queuedb .= "/commands.sql";
+
+        return App::Wubot::Reactor::Command->new( { logdir => $tempdir, queuedb => $queuedb } );
+    },
+);
+
+test "run command and capture output" => sub {
+    my ($self) = @_;
+
+    $self->reset_reactor;
 
     my $pwd = `pwd`;
     chomp $pwd;
 
-    is_deeply( $command->react( { abc => 'xyz' }, { command => 'pwd' } ),
+    is_deeply( $self->reactor->react( { abc => 'xyz' }, { command => 'pwd' } ),
                { command_output => $pwd, command_signal => 0, command_status => 0, abc => 'xyz' },
                "Checking react() run with a configured command"
            );
 
-    is( $command->react( { test => 'pwd' }, { command_field => 'test' } )->{command_output},
+    is( $self->reactor->react( { test => 'pwd' }, { command_field => 'test' } )->{command_output},
         $pwd,
         "Checking react() run with a command from a field"
     );
 
-    is( $command->react( { test => 'pwd' },
+    is( $self->reactor->react( { test => 'pwd' },
                          { command_field => 'test', output_field => 'test_output' }
                      )->{test_output},
         $pwd,
         "Checking react() with specified output field"
     );
-}
+};
 
-{
-    ok( my $command = App::Wubot::Reactor::Command->new( { logdir => $tempdir, queuedb => $queuedb } ),
-        "Creating new command reactor object"
-    );
+test "run command that fails" => sub {
+    my ($self) = @_;
 
-    is_deeply( $command->react( { abc => 'xyz' }, { command => 'false' } ),
+    $self->reset_reactor;
+
+    is_deeply( $self->reactor->react( { abc => 'xyz' }, { command => 'false' } ),
                { command_output => '', command_signal => 0, command_status => 1, abc => 'xyz' },
                "Checking react() run with a command that fails"
            );
-}
+};
 
-{
-    my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
+test "run forked command" => sub {
+    my ($self) = @_;
+
+    $self->reset_reactor;
 
     my $id = 'forker';
 
-    my $command = App::Wubot::Reactor::Command->new( { logdir => $tempdir, queuedb => $queuedb } );
-
-    my $queue_results_h = $command->react( { foo => 'abc' }, { command => 'sleep 4 && echo finished', fork => $id } );
+    my $queue_results_h = $self->reactor->react(
+        { foo     => 'abc' },
+        { command => 'sleep 4 && echo finished', fork => $id }
+    );
 
     is( $queue_results_h->{foo},
         'abc',
@@ -81,19 +96,19 @@ $queuedb .= "/commands.sql";
         "Checking that command was queued"
     );
 
-    ok( ! $command->monitor(),
+    ok( ! $self->reactor->monitor(),
         "Calling monitor method to start task, no message sent"
     );
 
     sleep 3;
 
-    ok( ! $command->monitor(),
+    ok( ! $self->reactor->monitor(),
         "Calling monitor method while task is still running, no message sent"
     );
 
-    my $lockfile    = join( "/", $command->logdir, "$id.pid" );
-    my $logfile     = join( "/", $command->logdir, "$id.log" );
-    my $resultsfile = join( "/", $command->logdir, "$id.yaml" );
+    my $lockfile    = join( "/", $self->reactor->logdir, "$id.pid" );
+    my $logfile     = join( "/", $self->reactor->logdir, "$id.log" );
+    my $resultsfile = join( "/", $self->reactor->logdir, "$id.yaml" );
 
     ok( -r $lockfile,
         "Checking that pidfile was created"
@@ -113,7 +128,7 @@ $queuedb .= "/commands.sql";
     #     "Checking that results file was created"
     # );
 
-    my $results_a = $command->monitor();
+    my $results_a = $self->reactor->monitor();
 
     is( scalar @{ $results_a },
         1,
@@ -147,15 +162,19 @@ $queuedb .= "/commands.sql";
     ok( ! -r $resultsfile,
         "Checking that results file was removed"
     );
-}
 
-{
+};
+
+
+test "run forked commands in multiple queues" => sub {
+    my ($self) = @_;
+
+    $self->reset_reactor;
+
     my $id = 'separate';
 
-    my $command = App::Wubot::Reactor::Command->new( { logdir => $tempdir, queuedir => $queuedir, queuedb => $queuedb } );
-
-    my $results1_h = $command->react( { foo => 'abc' }, { command => 'sleep 1 && echo finished1', fork => "$id.1" } );
-    my $results2_h = $command->react( { foo => 'def' }, { command => 'sleep 1 && echo finished2', fork => "$id.2" } );
+    my $results1_h = $self->reactor->react( { foo => 'abc' }, { command => 'sleep 1 && echo finished1', fork => "$id.1" } );
+    my $results2_h = $self->reactor->react( { foo => 'def' }, { command => 'sleep 1 && echo finished2', fork => "$id.2" } );
 
     ok( $results1_h->{command_queued},
         "Checking react() for first process was not queued"
@@ -165,13 +184,13 @@ $queuedb .= "/commands.sql";
         "Checking react() for second process was queued"
     );
 
-    ok( ! $command->monitor(),
+    ok( ! $self->reactor->monitor(),
         "calling monitor() method to start first command in queue"
     );
 
     sleep 3;
 
-    my $results3_h = $command->monitor();
+    my $results3_h = $self->reactor->monitor();
 
     ok( $results3_h->[0]->{lastupdate},
         "Checking that lastupdate field is set in first message"
@@ -204,72 +223,44 @@ $queuedb .= "/commands.sql";
                ],
                "Checking background command results"
            );
-}
+};
 
-{
-    ok( my $command = App::Wubot::Reactor::Command->new( { logdir => $tempdir, queuedb => $queuedb, fork => 'cache' } ),
-        "Creating new command reactor object"
-    );
+test "command array templating" => sub {
+    my ($self) = @_;
+
+    $self->reset_reactor;
 
     my $config = { command_array => [ 'echo', '{$abc}' ], fork => 'commandarray' };
 
-    $command->react( { abc => 'xyz' }, $config );
+    $self->reactor->react( { abc => 'xyz' }, $config );
 
-    ok( ! $command->monitor(),
+    ok( ! $self->reactor->monitor(),
         "calling monitor() method to start first command in queue"
     );
 
     sleep 1;
 
-    is_deeply( $command->monitor()->[0]->{command_output},
+    is_deeply( $self->reactor->monitor()->[0]->{command_output},
                "xyz",
                "Checking react() run with a configured_array command"
            );
 
-    $command->react( { abc => 'def' }, $config );
+    $self->reactor->react( { abc => 'def' }, $config );
 
-    ok( ! $command->monitor(),
+    ok( ! $self->reactor->monitor(),
         "calling monitor() method to start first command in queue"
     );
 
     sleep 1;
 
-    is_deeply( $command->monitor()->[0]->{command_output},
+    is_deeply( $self->reactor->monitor()->[0]->{command_output},
                "def",
                "Checking react() run with a configured_array command"
            );
 
 
-}
+};
 
-{
-    my $tempdir  = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
+run_me;
+done_testing;
 
-    my $queuedir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
-
-    my $queuedb = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 ) . "command.sql";
-
-    ok( my $command = App::Wubot::Reactor::Command->new( { logdir => $tempdir, queuedb => $queuedb } ),
-        "Creating new command reactor object"
-    );
-
-    my $string = 'x \ > \> y';
-
-    ok( $command->react( { abc => "echo $string" }, { command_field => 'abc', fork => 'safechar' } ),
-        "Queueing command"
-    );
-
-    ok( ! $command->monitor(),
-        "calling monitor() method to start first command in queue"
-    );
-
-    sleep 1;
-
-    is( $command->monitor()->[0]->{command_output},
-        $string,
-        "Checking react() removed unsafe characters"
-    );
-
-
-
-}
