@@ -1,18 +1,7 @@
 <html>
   <head>
     <title>wubot tags</title>
-    <meta http-equiv="refresh" content="60">
-    <style>
-
-td {
-  color: #cccccc;
-}
-a {
-  color: #cccccc;
-  text-decoration: none;
-}
-
-    </style>
+    <%= include 'css' %>
   </head>
 
 
