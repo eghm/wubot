@@ -332,7 +332,18 @@ sub monitor {
 sub _enqueue {
     my ( $self, $command, $message, $config ) = @_;
 
-    my $id = $config->{fork};
+    my $id;
+    if ( $config->{fork_field} ) {
+        $id = $message->{ $config->{fork_field} };
+        unless ( $id ) {
+            $self->logger->error( "fork_field $config->{fork_field} not defined in message" );
+            $id = $config->{fork_field};
+        }
+        $self->logger->info( "using queue name from $config->{fork_field}: $id" );
+    }
+    else {
+        $id = $config->{fork};
+    }
 
     unless ( -d $self->logdir ) {
         mkpath( $self->logdir );
@@ -542,6 +553,13 @@ with multiple sounds being played at the same time.
 
 The 'command_noresults' option indicates not to send an additional
 message when the command completes.
+
+If you want to consult a field on the message for the name of the fork
+queue rather than hard-coding it in the configuration, set 'fork' to
+1, and then add a config param named 'fork_field' which contains the
+name of the field to consult on the message.  If that field is
+undefined on the message, then an error message will be displayed, and
+the value of 'fork_field' will be used as a fall-back.
 
 =head1 WORKFLOWS
 

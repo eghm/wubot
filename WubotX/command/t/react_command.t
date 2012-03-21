@@ -261,6 +261,30 @@ test "command array templating" => sub {
 
 };
 
+test "queue defined in fork_field" => sub {
+    my ($self) = @_;
+
+    $self->reset_reactor;
+
+    my $id = 'forker';
+
+    my $queue_results_h = $self->reactor->react(
+        { foo     => 'abc' },
+        { command => 'sleep 4 && echo finished', fork => 1, fork_field => 'foo' }
+    );
+
+    is( $queue_results_h->{foo},
+        'abc',
+        "Checking react() returned original message after forking"
+    );
+
+    is( $queue_results_h->{command_queued},
+        'abc',
+        "Checking that command was queued"
+    );
+};
+
+
 run_me;
 done_testing;
 
