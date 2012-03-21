@@ -74,8 +74,6 @@ sub get_item_postproc {
 sub cmd {
     my ( $self, $taskid, $cmdlist ) = @_;
 
-    print "TASKID: $taskid\n";
-
     my ( $item ) = $util->get_item( $taskid, \&get_item_postproc );
 
     for my $cmd ( split /\s*,\s*/, $cmdlist ) {
@@ -239,7 +237,9 @@ sub tasks {
         $self->cmd( $id, $cmd );
     }
 
-    $self->stash( 'headers', [qw/timer # cmd status time dur title ed link priority rec done category updated/ ] );
+    $self->stash( 'headers', [ 'timer', '#', 'cmd', 'status', 'time', 'dur',
+                               'title', 'ed', 'link', 'priority', 'rec', 'done',
+                               'category', 'updated' ] );
 
     my $now = time;
     my $start = $now + 15*60;
@@ -260,7 +260,7 @@ sub tasks {
         }
         if ( uc($status) eq "DONE" ) {
             $query->{order} = [ 'scheduled DESC', 'priority DESC', 'id DESC' ];
-            print "ORDER: desc\n";
+            #print "ORDER: desc\n";
         }
     }
     else {
@@ -283,26 +283,27 @@ sub tasks {
     my $is_not_null = "IS NOT NULL";
 
     my $scheduled = $util->check_session( $self, 'scheduled' );
-    print "SCHEDULED: $scheduled\n";
-    if ( $scheduled eq "false" ) {
-        $query->{where}->{scheduled}  = undef;
-    }
-    elsif ( $scheduled eq "true" ) {
-        $query->{where}->{scheduled}  = \$is_not_null;
-        unless ( uc( $status ) eq "DONE" ) {
-            $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
+    if ( $scheduled ) {
+        if ( $scheduled eq "false" ) {
+            $query->{where}->{scheduled}  = undef;
         }
-    }
-    elsif ( $scheduled eq "future" ) {
-        $query->{where}->{scheduled}  = { ">=" => $now };
-        unless ( uc( $status ) eq "DONE" ) {
-            $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
+        elsif ( $scheduled eq "true" ) {
+            $query->{where}->{scheduled}  = \$is_not_null;
+            unless ( $status && uc( $status ) eq "DONE" ) {
+                $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
+            }
         }
-    }
-    elsif ( $scheduled eq "past" ) {
-        $query->{where}->{scheduled}  = { "<=" => $now };
-        unless ( uc( $status ) eq "DONE" ) {
-            $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
+        elsif ( $scheduled eq "future" ) {
+            $query->{where}->{scheduled}  = { ">=" => $now };
+            unless ( uc( $status ) eq "DONE" ) {
+                $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
+            }
+        }
+        elsif ( $scheduled eq "past" ) {
+            $query->{where}->{scheduled}  = { "<=" => $now };
+            unless ( uc( $status ) eq "DONE" ) {
+                $query->{order} = [ 'scheduled ASC', 'priority DESC', 'lastupdate DESC' ];
+            }
         }
     }
 
