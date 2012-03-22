@@ -563,10 +563,10 @@ of 'fork_field' will be used as a fall-back.
 
 =head1 WORKFLOWS
 
-When a queued command is executed, a message will be sent.  You can
-use that message to trigger additional reactions.  The completion
-message will contain all the fields from the original message, plus
-the fields:
+When a queued command has completed execution, a message will be sent.
+You can use that message to trigger additional reactions.  The
+completion message will contain all the fields from the original
+message, plus the fields:
 
   command_queue: the command queue from which the command was executed
   command_status: the exit status of the command
@@ -613,7 +613,7 @@ external command.
 
 It is not yet possible to specify a timeout for a command queue.  So
 if a program hangs indefinitely, the queue will get stuck.  This is on
-the todo list.
+the todo list (patches welcome!).
 
 The queues are checked each time the reactor's monitor() method is
 called.  Currently this is once ever 15 seconds.  So there could be up
