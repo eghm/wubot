@@ -141,5 +141,33 @@ test "use file_field to get file from field on message" => sub {
            );
 };
 
+test "get tablename from table_field" => sub {
+    my ($self) = @_;
+
+    $self->reset_reactor;
+
+    my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
+
+    my $testfile = "$tempdir/test1.sql";
+
+    is_deeply( $self->reactor->react( { subject => 'bar', mytable => 'tablefoo' },
+                                      { file      => $testfile,
+                                        tablename_field => 'mytable',
+                                        schema    => { subject => 'VARCHAR(32)',
+                                                       id      => 'INTEGER PRIMARY KEY AUTOINCREMENT',
+                                                   },
+                                    } ),
+               { subject => 'bar', mytable => 'tablefoo' },
+               "checking that id_field from config was used for table id"
+           );
+
+
+    is_deeply( [ $self->reactor->sqlite->{$testfile}->select( { tablename => 'tablefoo' } ) ],
+               [ { id => 1, subject => 'bar' } ],
+               "Checking that row was inserted properly in tablefoo"
+           );
+};
+
+
 run_me;
 done_testing;

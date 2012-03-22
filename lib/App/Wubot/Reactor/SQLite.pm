@@ -31,12 +31,12 @@ sub react {
             $file = $message->{ $config->{file_field} };
         }
         else {
-            $self->logger->error( "WARNING: sqlite reactor: field $config->{file_field} not defined on message" );
+            $self->logger->error( "ERROR: sqlite reactor: field $config->{file_field} not defined on message" );
             return $message;
         }
     }
     else {
-        $self->logger->error( "WARNING: sqlite reactor called with no 'file' or 'file_field' specified" );
+        $self->logger->error( "ERROR: sqlite reactor called with no 'file' or 'file_field'" );
         return $message;
     }
 
@@ -45,15 +45,33 @@ sub react {
         $self->sqlite->{ $file } = App::Wubot::SQLite->new( { file => $file } );
     }
 
+    my $tablename;
+    if ( $config->{tablename} ) {
+        $tablename = $config->{tablename};
+    }
+    elsif ( $config->{tablename_field} ) {
+        if ( $message->{ $config->{tablename_field} } ) {
+            $tablename = $message->{ $config->{tablename_field} };
+        }
+        else {
+            $self->logger->error( "ERROR: sqlite reactor: field $config->{tablename_field} not defined on message" );
+            return $message;
+        }
+    }
+    else {
+        $self->logger->error( "ERROR: sqlite reactor called with no 'tablename' or 'tablename_field'" );
+        return $message;
+    }
+
     if ( $config->{update} ) {
         my $update_where;
         for my $field ( keys %{ $config->{update} } ) {
             $update_where->{ $field } = $message->{ $field };
         }
-        $self->sqlite->{ $file }->insert_or_update( $config->{tablename}, $message, $update_where, $config->{schema} );
+        $self->sqlite->{ $file }->insert_or_update( $tablename, $message, $update_where, $config->{schema} );
     }
     else {
-        my $id = $self->sqlite->{ $file }->insert( $config->{tablename}, $message, $config->{schema} );
+        my $id = $self->sqlite->{ $file }->insert( $tablename, $message, $config->{schema} );
 
         if ( $config->{id_field} ) {
             $message->{ $config->{id_field} } = $id;
@@ -111,6 +129,9 @@ The message will be inserted into a row in a SQLite table.  The
 'schema' is consulted to determine which fields to insert.  If you
 don't specify the schema in the rule, it will search in
 ~/wubot/schemas for a named {tablename}.yaml.
+
+If the name of the table should come from a field on the message,
+use 'tablename_field' rather than using 'tablename'.
 
 =head1 UPDATE
 
