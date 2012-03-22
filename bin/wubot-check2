@@ -1,0 +1,111 @@
+#!/usr/local/bin/perl -w
+use strict;
+use warnings;
+
+# VERSION
+
+use AnyEvent;
+use FindBin;
+use Log::Log4perl;
+use Sys::Hostname;
+use YAML::XS;
+
+use lib "$FindBin::Bin/../lib";
+
+use App::Wubot::LocalMessageStore;
+use App::Wubot::Logger;
+use App::Wubot::SQLite;
+use App::Wubot::Check;
+use App::Wubot::WubotX;
+
+# load plugin library paths
+my $wubotx = App::Wubot::WubotX->new();
+$wubotx->get_plugins();
+
+my $logger = Log::Log4perl::get_logger( 'default' );
+
+my ( $plugin, $key ) = @ARGV;
+unless ( $plugin && $key ) {
+    die "ERROR: you must specify both a plugin and a key name!"
+}
+
+$logger->warn( "PLUGIN: $plugin" );
+$logger->warn( "KEY:    $key" );
+
+my $glob = "$ENV{HOME}/wubot/config/plugins/$plugin/$key.yaml*";
+my ( $config_file ) = glob( $glob );
+
+unless ( $config_file ) {
+    die "ERROR: config file not found: $glob";
+}
+
+unless ( -r $config_file ) {
+    $logger->logdie( "ERROR: config file not found: $config_file" );
+}
+my $config = YAML::XS::LoadFile( $config_file );
+$config->{nofork} = 1;
+$logger->info( "CONFIG: ", YAML::XS::Dump $config );
+
+my $cache_file = "$ENV{HOME}/wubot/cache/$plugin-$key.yaml";
+if ( -r $cache_file ) {
+    $logger->info( "Found cache file: $cache_file" );
+}
+
+my $messenger = App::Wubot::LocalMessageStore->new( { novacuum => 1 } );
+
+my $check_h = { key           => "$plugin-$key",
+                class         => "App::Wubot::Plugin::$plugin",
+                reactor_queue => $messenger,
+                cache_file    => $cache_file,
+            };
+
+my $check = App::Wubot::Check->new( $check_h );
+
+my $j = AnyEvent->condvar;
+
+$logger->info( "Initializing" );
+print YAML::XS::Dump $check->init( $config );
+
+$logger->info( "Checking" );
+
+print YAML::XS::Dump $config;
+
+my $timer = AnyEvent->timer( after    => 1,
+                             interval => 5,
+                             cb       => sub {
+
+                                 eval {
+                                     my $results = $check->check( { config => $config } );
+
+                                     print "RESULTS:\n";
+                                     print YAML::XS::Dump $results;
+                                     print "\n";
+                                     1;
+                                 } or do {                       # catch
+                                     print "ERROR RUNNING CHECK: $@\n";
+                                     exit;
+                                 };
+                             },
+                         );
+
+$j->wait;
+
+__END__
+
+=head1 NAME
+
+ wubot-check - perform a single check of an instance of a plugin
+
+=head1 SYNOPSIS
+
+  wubot-check Plugin id
+
+  # example
+  wubot-check RSS slashdot
+
+=head1 DESCRIPTION
+
+This script makes it easy to perform a single check of an instance of
+a monitor.
+
+See also: L<App::Wubot::Guide::Debugging>
