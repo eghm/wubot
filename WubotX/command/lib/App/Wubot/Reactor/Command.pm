@@ -558,8 +558,8 @@ If you want to consult a field on the message for the name of the fork
 queue rather than hard-coding it in the configuration, set 'fork' to
 1, and then add a config param named 'fork_field' which contains the
 name of the field to consult on the message.  If that field is
-undefined on the message, then an error message will be displayed, and
-the value of 'fork_field' will be used as a fall-back.
+undefined on the message, then an error will be logged, and the value
+of 'fork_field' will be used as a fall-back.
 
 =head1 WORKFLOWS
 
