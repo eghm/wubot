@@ -37,6 +37,10 @@ rules:
     condition: name matches TestCase3
     rulesfile_field: myrules
 
+  - name: rule4
+    condition: name matches TestCase4
+    rulesfile: $tempdir/rules4.yaml
+
 EOF
 
 my $config = YAML::XS::Load( $config_src );
@@ -188,6 +192,86 @@ test "running rule in external file specified by rulesfile_field" => sub {
            );
 };
 
+test "re-read external rules file on change" => sub {
+    my ($self) = @_;
+
+    $self->reset_reactor;
+
+    {
+        open(my $fh4, ">", "$tempdir/rules4.yaml")
+            or die "Couldn't open $tempdir/rules4.yaml for writing: $!\n";
+
+        my $rules4 = <<"END_RULES4";
+---
+rules:
+
+  - name: rule6
+    condition: x is true
+    plugin: SetField
+    config:
+      field: baz
+      value: 1
+
+END_RULES4
+
+        print $fh4 $rules4;
+        close $fh4 or die "Error closing file: $!\n";
+
+        ok( my $results = $self->reactor->react( { name => 'TestCase4',
+                                                   x => 1,
+                                               } ),
+            "Calling react() on the message"
+        );
+
+        is_deeply( $results,
+                   { name => 'TestCase4',
+                     baz  => 1,
+                     x    => 1,
+                     wubot_rulelog => { $hostname => [ qw( rule4 rule6 ) ] },
+                 },
+                   "Calling react() for TestCase4"
+               );
+    }
+
+    sleep 1;
+
+    {
+        open(my $fh4, ">", "$tempdir/rules4.yaml")
+            or die "Couldn't open $tempdir/rules4.yaml for writing: $!\n";
+
+        my $rules4 = <<"END_RULES4";
+---
+rules:
+
+  - name: rule6
+    condition: x is true
+    plugin: SetField
+    config:
+      field: baz
+      value: 2
+
+END_RULES4
+
+        print $fh4 $rules4;
+        close $fh4 or die "Error closing file: $!\n";
+
+
+        ok( my $results = $self->reactor->react( { name => 'TestCase4',
+                                                   x => 1,
+                                               } ),
+            "Calling react() on the message after changing the file"
+        );
+
+        is_deeply( $results,
+                   { name => 'TestCase4',
+                     baz  => 2,
+                     x    => 1,
+                     wubot_rulelog => { $hostname => [ qw( rule4 rule6 ) ] },
+                 },
+                   "Checking results for test case 4"
+               );
+    }
+};
 
 # test "rulesfile_field not found on message" => sub {
 #     my ($self) = @_;

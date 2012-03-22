@@ -139,19 +139,14 @@ sub react {
                 }
             }
 
-            unless ( $cache->{ $rulesfile } ) {
-                unless ( -r $rulesfile ) {
-                    $self->logger->error( "ERROR: rules file does not exist: $rulesfile" );
-                    next RULE;
-                }
-                $self->logger->warn( "Loading rules file: $rulesfile" );
-                my $rules = YAML::XS::LoadFile( $rulesfile );
-                $cache->{ $rulesfile } = $rules->{rules};
-                $self->logger->debug( "Loaded rules file into cache" );
+            my $got_rules = $self->get_rulesfile( $rulesfile );
+            unless ( $got_rules ) {
+                $self->logger->error( "ERROR: unable to load rules from: $rulesfile" );
+                next RULE;
             }
 
             $self->logger->debug( "Processing rules in $rulesfile" );
-            $self->react( $message, $cache->{ $rulesfile }, $depth+1 );
+            $self->react( $message, $got_rules, $depth+1 );
         }
 
         if ( $rule->{plugin} ) {
@@ -165,6 +160,40 @@ sub react {
     }
 
     return $message;
+}
+
+=item get_rulesfile
+
+Reads an external rules file.  The results are stored in the global
+rules cache.
+
+Each time this method is called, the modified time will be checked.
+If the file has been changed, then the file will be re-read.
+
+=cut
+
+sub get_rulesfile {
+    my ( $self, $rulesfile ) = @_;
+
+    my $mtime = ( stat $rulesfile )[9];
+
+    if ( $cache->{ $rulesfile } ) {
+        if ( $cache->{ $rulesfile }->{mtime} == $mtime ) {
+            return $cache->{ $rulesfile }->{rules};
+        }
+
+        $self->logger->info( "Re-reading modified rules file: $rulesfile" );
+    }
+
+    $self->logger->warn( "Loading rules file: $rulesfile" );
+
+    my $rules = YAML::XS::LoadFile( $rulesfile );
+
+    $cache->{ $rulesfile }->{rules} = $rules->{rules};
+    $cache->{ $rulesfile }->{mtime} = $mtime;
+    $self->logger->debug( "Loaded rules file into cache" );
+
+    return $rules->{rules};
 }
 
 
