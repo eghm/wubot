@@ -1,4 +1,7 @@
 ---
-'/tasks': tasks
-'/ical': ical
-'/open/org/(.file)/(.link)': open
+'/taskbot/new': newtask
+'/taskbot/item/(.taskid)': item
+'/taskbot/list': tasks
+'/taskbot/edit/(.taskid)': open
+'/taskbot/ical': ical
+
