@@ -73,7 +73,7 @@ sub read_config {
 
             my $instance_count = 0;
 
-          INSTANCES:
+          INSTANCE:
             while ( defined( my $instance_entry = readdir( $instance_dir_h ) ) ) {
                 next unless $instance_entry;
 
@@ -92,6 +92,7 @@ sub read_config {
                     1;
                 } or do {                       # catch
                     $self->logger->fatal( "ERROR loading: $plugin_dir/$instance_entry\n$@" );
+                    next INSTANCE;
 
                 };
 
