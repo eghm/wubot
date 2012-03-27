@@ -307,6 +307,10 @@ sub tasks {
         }
     }
 
+    if ( $self->param( 'order' ) ) {
+        $query->{order} = $self->param( 'order' );
+    }
+
     $query->{callback} = sub {
         my $task = shift;
         my $obj  = App::Wubot::Web::Obj::TaskObj->new( { db_hash => $task, sql => $taskbot->sql } );
