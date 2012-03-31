@@ -1,5 +1,0 @@
----
-'/notify': notify
-'/notify/id/(.id)': item
-'/tags': tags
-'/colors': colors

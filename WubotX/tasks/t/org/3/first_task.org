@@ -1,4 +1,0 @@
-** TODO first line in file is task with two bullet points
-
-  - [ ] foo
-

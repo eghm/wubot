@@ -1,5 +1,0 @@
----
-'/contacts': index
-'/contacts/list': list
-'/contacts/id/(.id)': item
-
