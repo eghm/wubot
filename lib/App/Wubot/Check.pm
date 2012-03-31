@@ -243,6 +243,8 @@ sub check {
     my $diff = timediff( $end, $start );
     $self->logger->debug( $self->key, ":", timestr( $diff, 'all' ) );
 
+    return unless $results;
+
     if ( $results->{react} ) {
         $self->logger->debug( " - running rules defined in react" );
         $self->reactor->( $results->{react}, $config );
