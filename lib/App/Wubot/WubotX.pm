@@ -1,6 +1,8 @@
 package App::Wubot::WubotX;
 use Moose;
 
+# VERSION
+
 use YAML::XS;
 
 use App::Wubot::Logger;
