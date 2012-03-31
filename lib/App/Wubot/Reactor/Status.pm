@@ -62,6 +62,10 @@ my $phi = 0.5 + 0.5 * sqrt(5.0);
 sub react {
     my ( $self, $message, $config ) = @_;
 
+    if ( $message->{status} && $message->{status_count} ) {
+        return $message;
+    }
+
     unless ( $message->{status}              ) { $message->{status} = "OK" }
     unless ( $statuses{ $message->{status} } ) { return $message           }
 
