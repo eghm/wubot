@@ -181,7 +181,6 @@ my $colorfile = join( "/", $ENV{HOME}, "wubot", "config", "colors.yaml" );
 if ( -r $colorfile ) {
     my $custom_colors = YAML::XS::LoadFile( $colorfile );
     for my $color ( keys %{ $custom_colors } ) {
-        print "COLOR: $color => $custom_colors->{$color}\n";
         $pretty_colors->{ $color } = '#' . $custom_colors->{ $color };
     }
 }
