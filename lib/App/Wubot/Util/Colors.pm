@@ -176,6 +176,16 @@ my $pretty_colors = { pink                 => '#660033',
                       yellowgreen          => '#9ACD32',
                   };
 
+# read colors from external config file on startup
+my $colorfile = join( "/", $ENV{HOME}, "wubot", "config", "colors.yaml" );
+if ( -r $colorfile ) {
+    my $custom_colors = YAML::XS::LoadFile( $colorfile );
+    for my $color ( keys %{ $custom_colors } ) {
+        print "COLOR: $color => $custom_colors->{$color}\n";
+        $pretty_colors->{ $color } = '#' . $custom_colors->{ $color };
+    }
+}
+
 # color aliases
 for my $color ( sort keys %{ $pretty_colors } ) {
     my $value = $pretty_colors->{$color};
@@ -188,6 +198,8 @@ sub get_color {
     my ( $self, $color ) = @_;
 
     return $pretty_colors->{default} unless $color;
+
+    return $pretty_colors->{$color} if $pretty_colors->{$color};
 
     if ( $pretty_colors->{$color} ) {
         return $pretty_colors->{$color};
@@ -208,41 +220,27 @@ App::Wubot::Util::Colors - color themes for wubot
 
 =head1 DESCRIPTION
 
-This module defines color codes for named colors for the wubot web ui.
+This module handles translating color names to hex color codes.
 
-The web ui is still under development.  Current the colors are
-hard-coded.  In the future these will be configurable.
+You can define your own custom colors in ~/wubot/config/colors.yaml
 
-The current colors are based on the solarized color schema.  For more info, see:
+  ---
+  names:
+    pink: 6c003f
+    purple: 440066
+    blue: 002b66
+    green: 004a00
+    yellow: 656500
+    orange: 804c00
+    red: 620000
+    brblue: 004d66
+    darkblue: 110066
+
+The default colors are based on the solarized color schema.  For more info, see:
 
   http://ethanschoonover.com/solarized
 
-Here is the current color names represent the following hex codes:
-
-  black      #333333
-  blue       #268bd2
-  brblack    #002b36
-  brblue     #839496
-  brcyan     #93a1a1
-  brgreen    #586e75
-  brmagenta  #d33682
-  brwhite    #fdf6e3
-  bryellow   #657b83
-  cyan       #2aa198
-  dark       black
-  green      #859900
-  magenta    #770077
-  orange     #cb4b16
-  pink       #FF33FF
-  purple     magenta
-  red        #dc322f
-  violet     #6c71c4
-  white      #eee8d5
-  yellow     #b58900
-
-
-TODO: finish docs
-
+For a complete list of colors, check out the source code.
 =head1 SUBROUTINES/METHODS
 
 =over 8
