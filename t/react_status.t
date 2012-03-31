@@ -207,12 +207,14 @@ test "repeated critical notification suppression" => sub {
                                       {}
                                   ),
                { key            => 'abc',
-                 status_subject => 'foo',
+                 subject        => 'foo',
                  status         => 'CRITICAL',
                  lastupdate     => $fourth,
                  status_since   => $start,
                  status_count   => 4,
                  color          => 'red',
+                 quiet          => 1,
+                 suppress       => 1,
              },
                "Running Status reactor suppresses 4th warning, 4 is not a fibonacci number"
            );
