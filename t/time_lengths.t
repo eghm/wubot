@@ -187,12 +187,12 @@ ok( my $timelength = App::Wubot::Util::TimeLength->new(),
         "Human-readable time for 12 hours 1 minute and 10 seconds rounds to nearest minute"
     );
 
-    is( $timelength->get_human_readable( -60*60*24*1.5+70 ),
+    is( $timelength->get_human_readable( -(60*60*24*1.5+70) ),
         "-1d12h",
         "Human-readable time for minus 1.5 days, 1 minute, and 10 seconds rounds to nearest hour"
     );
 
-    is( $timelength->get_human_readable( -60*60*12+70 ),
+    is( $timelength->get_human_readable( -(60*60*12+70) ),
         "-12h1m",
         "Human-readable time for minus 12 hours 1 minute and 10 seconds rounds to nearest minute"
     );
