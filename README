@@ -72,6 +72,10 @@ location where you unpacked the tarball, e.g.:
 
   ln -s ~/projects/wubot/WubotX ~/wubot/WubotX
 
+In addition, you may need to copy schemas from the WubotX directories:
+
+  cp -Rv ~/wubot/WubotX/*/schemas/ ~/wubot/schemas/
+
 Eventually the WubotX plugins will be broken out into separate modules
 and available on CPAN, but for the near future they will be available
 on github.  Sorry for the difficulty--this is still a work in progress.
