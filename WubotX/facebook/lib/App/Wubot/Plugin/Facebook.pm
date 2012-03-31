@@ -42,7 +42,6 @@ sub check {
     $content =~ s|\\u200e||g;
     $content =~ s|\\||g;
 
-
     my @messages;
 
     while ( $content =~ m|(<script.*?</script>)|sg ) {
@@ -158,6 +157,9 @@ sub check {
         if ( scalar @return ) {
             $return->{react} = \@return;
         }
+
+        print YAML::Dump \@return;
+        print YAML::Dump $return;
 
         return $return;
     }
