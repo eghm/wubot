@@ -14,7 +14,7 @@ use FindBin;
 use Getopt::Long;
 use Log::Log4perl qw(:easy);
 use POSIX qw(strftime);
-use YAML;
+use YAML::XS;
 
 use lib "$FindBin::Bin/../lib";
 
