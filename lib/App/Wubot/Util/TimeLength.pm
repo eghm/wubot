@@ -4,6 +4,7 @@ use Moose;
 # VERSION
 
 use POSIX;
+use YAML::XS;
 
 use App::Wubot::Logger;
 
@@ -58,6 +59,20 @@ my $constants = { s => 1,
                   M => 60*60*24*30,
                   y => 60*60*24*365,
               };
+
+# my $colorfile = join( "/", $ENV{HOME}, "wubot", "config", "colors.yaml" );
+# my $config = YAML::XS::LoadFile( $colorfile );
+# my $colors;
+# for my $key ( qw( s m h d w M y ) ) {
+#     next unless $config->{$key\\\\};
+
+#     my @rgb = map { hex($_) } unpack 'a2a2a2', $hex;
+
+
+# }
+# #    my $hex = 
+# #    $colors->{$key} = [ split /,/, $config->{ages}->{$key} ];
+# }
 
 =head1 SUBROUTINES/METHODS
 
@@ -220,12 +235,17 @@ sub get_age_color {
     #                'y' => [ 200,   0,   0,    0,   0,   0, 2 ],
     #            };
 
+    # my $colors = { 'h' => [ 102,   0,  77,   54,  56,  98    ],
+    #                'd' => [  54,  56,  98,   19,  69, 105    ],
+    #                'w' => [  19,  69, 105,   66,  77,   0    ],
+    #                'M' => [  66,  76,   0,  110,  25,  23    ],
+    #                'y' => [  50,  50,  50,    0,   0,   0, 2 ],
 
-    my $colors = { 'h' => [ 102,   0,  77,   54,  56,  98    ],
-                   'd' => [  54,  56,  98,   19,  69, 105    ],
-                   'w' => [  19,  69, 105,   66,  77,   0    ],
-                   'M' => [  66,  76,   0,  110,  25,  23    ],
-                   'y' => [  50,  50,  50,    0,   0,   0, 2 ],
+    my $colors = { 'h' => [ 114,0,122, 40,0,122 ],
+                   'd' => [ 0,27,122,  0, 102, 102 ],
+                   'w' => [ 0, 102, 102,  66, 133, 0 ],
+                   'M' => [ 66,133,0, 153,102,0 ],
+                   'y' => [ 153,102,0, 0,0,0, 2 ],
                };
 
     my $previous = 0;
