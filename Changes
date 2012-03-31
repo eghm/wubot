@@ -1,5 +1,11 @@
 Revision history for Wubot
 
+0.4.0 2012-03-30T22:07PDT
+
+  - significantly shrinking the core and moving lots of libraries into WubotX extensions
+  - see the 'README' to install the WubotX extensions
+  - a long list of changes, please see the history on github
+
 0.3.10 2011-10-12T12:37PDT
 
   - fixes for some test cases
