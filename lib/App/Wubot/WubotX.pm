@@ -93,7 +93,7 @@ sub get_plugins {
 
 =item $obj->get_webui()
 
-Loades the webui.yaml files from the various plugin directories.
+Loads the webui.yaml files from the various plugin directories.
 
 =cut
 
