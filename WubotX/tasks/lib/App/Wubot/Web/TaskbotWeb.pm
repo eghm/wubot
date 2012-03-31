@@ -117,6 +117,9 @@ sub cmd {
         elsif ( $cmd eq "done" ) {
             $item->{status} = "DONE";
         }
+        elsif ( $cmd eq "skip" ) {
+            $item->{status} = "CANCELLED";
+        }
         elsif ( $cmd =~ m/^c.(.*)$/ ) {
             $item->{category} = $1;
         }
@@ -135,18 +138,29 @@ sub update_task_preproc {
         $task_h->{status} = $task_h->{task_status};
     }
 
-    if ( $task_h->{status} && $task_h->{status} eq "DONE" ) {
+    if ( $task_h->{status} ) {
+        if ( $task_h->{status} eq "DONE" ) {
+            $task_h->{lastdone} = time;
 
-        $task_h->{lastdone} = time;
+            my ( $task_orig ) = $util->get_item( $task_h->{taskid}, \&get_item_postproc );
 
-        my ( $task_orig ) = $util->get_item( $task_h->{taskid}, \&get_item_postproc );
+            if ( $task_orig->{recurrence} ) {
+                $task_h->{status} = "TODO";
 
-        if ( $task_orig->{recurrence} ) {
-            $task_h->{status} = "TODO";
+                my $next = $timelength->get_seconds( $task_h->{recurrence} );
 
-            my $next = $timelength->get_seconds( $task_h->{recurrence} );
+                if ( $task_orig->{scheduled} ) {
+                    $task_h->{scheduled} = $task_orig->{scheduled} + $next;
+                }
+            }
+        } elsif ( $task_h->{status} eq "CANCELLED" ) {
+            my ( $task_orig ) = $util->get_item( $task_h->{taskid}, \&get_item_postproc );
 
-            if ( $task_orig->{scheduled} ) {
+            # skipping one occurrence of a recurring task
+            if ( $task_orig->{scheduled} && $task_orig->{recurrence} ) {
+                $task_h->{status} = "TODO";
+
+                my $next = $timelength->get_seconds( $task_h->{recurrence} );
                 $task_h->{scheduled} = $task_orig->{scheduled} + $next;
             }
         }
