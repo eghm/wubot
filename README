@@ -43,12 +43,11 @@ Or simply:
 
   cpan App::Wubot
 
-Note that none of the optional prereqs get installed using this
-method.  So while this will get you up and running with the minimum
-required modules, you may not have the necessary prereqs to run all
-the monitors or reactors.  To get all the optional prereqs, and to get
-the latest version of App::Wubot available, consider the following
-method:
+None of the optional prereqs get installed using this method.  So
+while this will get you up and running with the minimum required
+modules, you may not have the necessary prereqs to run all the
+monitors or reactors.  To get all the optional prereqs, and to get the
+latest version of App::Wubot available, consider the following method:
 
   cpan Dist::Zilla
   git clone git://github.com/wu/wubot.git
@@ -56,8 +55,8 @@ method:
   dzil authordeps | xargs cpan
   dzil listdeps | xargs cpan
 
-Note that you will probably have to create a ~/wubot and ~/logs
-directory.  In the future these directories will be configurable.
+You will probably have to create a ~/wubot and ~/logs directory.  In
+the future these directories will be configurable.
 
 Also will also need to create ~/wubot/schemas, and copy the files from
 the 'config/schemas' directory into that directory.
@@ -65,6 +64,17 @@ the 'config/schemas' directory into that directory.
 To get the web interface up and going, see here:
 
   - http://search.cpan.org/perldoc?App::Wubot::Guide::WebUI
+
+Many of the modules previously distributed with wubot have now been
+removed from the core and into the WubotX subdirectory.  To enable
+them, symlink ~/wubot/WubotX to the WubotX subdirectory of the
+location where you unpacked the tarball, e.g.:
+
+  ln -s ~/projects/wubot/WubotX ~/wubot/WubotX
+
+Eventually the WubotX plugins will be broken out into separate modules
+and available on CPAN, but for the near future they will be available
+on github.  Sorry for the difficulty--this is still a work in progress.
 
 
 =head1 LICENSE AND COPYRIGHT
