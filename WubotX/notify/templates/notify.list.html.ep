@@ -4,7 +4,7 @@
     <meta http-equiv="refresh" content="<%= 60 + int(rand(10)) %>">
     <%= include 'css' %>
   </head>
-  <body bgcolor=black>
+  <body bgcolor="black">
 
     <%= include 'nav' %>
 

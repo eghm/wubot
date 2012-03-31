@@ -64,6 +64,11 @@
         </tr>
 
         <tr>
+          <td>color</td>
+          <td><%= $item->color %></td>
+        </tr>
+
+        <tr>
           <td>cmd</td>
           <td><input type="text" name="cmd" size="5" style="background-color: <%= $item->display_color %>; border: 1px solid black"></td>
         </tr>
