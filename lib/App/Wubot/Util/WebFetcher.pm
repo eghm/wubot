@@ -134,10 +134,12 @@ sub fetch {
     }
 
     if ( $config->{ignore_cert_errors} ) {
-        $ua->ssl_opts( SSL_verify_mode => 0 )
+        $self->logger->debug( "Disabling certificate verification" );
+        $ua->ssl_opts( verify_hostname => 0 )
     }
 
     if ( $config->{ca_file} ) {
+        $self->logger->debug( "Setting custom ca file: $config->{ca_file}" );
         $ua->ssl_opts( SSL_ca_file => $config->{ca_file} )
     }
 
