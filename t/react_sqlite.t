@@ -7,7 +7,6 @@ use File::Temp qw/ tempdir /;
 use Test::More;
 use Test::Routine;
 use Test::Routine::Util;
-use YAML;
 
 use App::Wubot::Logger;
 use App::Wubot::Reactor::SQLite;
