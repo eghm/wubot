@@ -4,6 +4,7 @@ use Moose;
 # VERSION
 
 use File::Path;
+use YAML::XS;
 
 use App::Wubot::Logger;
 
@@ -19,7 +20,7 @@ sub react {
     my ( $self, $message, $config ) = @_;
 
     unless ( $config->{field} ) {
-        $self->logger->error( "ERROR: MakeDirectory: field not defined in config", YAML::Dump $config );
+        $self->logger->error( "ERROR: MakeDirectory: field not defined in config", YAML::XS::Dump $config );
         return $message;
     }
 
