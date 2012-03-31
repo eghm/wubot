@@ -170,8 +170,7 @@ sub check {
             $self->logger->logdie( "ERROR: now show information retrieved from the tivo" );
         }
 
-        my $message = { subject    => "Totals: shows=$show_count folders=$folder_count new=$new_size total=$total_size",
-                        shows      => $show_count,
+        my $message = { shows      => $show_count,
                         folders    => $folder_count,
                         size       => $total_size,
                         new_size   => $new_size,
@@ -180,7 +179,10 @@ sub check {
         if ( $config->{hd} ) {
             my $percent = int( $total_size / $config->{hd} ) / 10;
             $message->{percent} = $percent;
-            $message->{subject} .= " $percent%";
+            $message->{subject} = "Totals: $percent% shows=$show_count folders=$folder_count new=$new_size total=$total_size",
+        }
+        else {
+            $message->{subject} = "Totals: shows=$show_count folders=$folder_count new=$new_size total=$total_size",
         }
 
         $self->reactor->( $message, $config );
@@ -315,10 +317,10 @@ beyond the scope of this document.
 If you are unable to authorize the certificate on your operating
 system, you can retrieve the cert by doing something like this:
 
-  openssl s_client -connect 192.168.1.140:443 |tee ~/tmp/logfile
+  openssl openssl s_client -showcerts -connect 192.168.1.140:443
 
-Capture the lines containing BEGIN CERTIFICATE through END CERTIFICATE
-and put them in a file such as:
+Capture each of the certs with the lines containing BEGIN CERTIFICATE
+through END CERTIFICATE and put them in a file such as:
 
   ~/wubot/ca-bundle
 
