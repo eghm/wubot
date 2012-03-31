@@ -135,7 +135,7 @@ use 'tablename_field' rather than using 'tablename'.
 
 =head1 UPDATE
 
-If you set 'update' (see the third example in the SYNOPIS), then it
+If you set 'update' (see the third example in the SYNOPSIS), then it
 will use the columns you list under the 'update' section in building
 the WHERE clause for the update.  In other words, if you defined a
 field named 'foo' under update, it would attempt to update the row in
