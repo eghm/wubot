@@ -111,7 +111,7 @@ sub get_submit_item {
 }
 
 sub update_item {
-    my ( $self, $item, $id, $preproc, $ref ) = @_;
+    my ( $self, $item, $id, $preproc, $ref, $options ) = @_;
 
     my $type   = $self->type;
     my $idname = $self->idname;
@@ -126,7 +126,9 @@ sub update_item {
     # ensure itemid is set in the item
     $item->{$idname} = $id;
 
-    $item->{lastupdate} = time;
+    unless ( $options->{no_lastupdate} ) {
+        $item->{lastupdate} = time;
+    }
 
     $self->logger->info( "Updating $type item: $id" );
 
@@ -156,7 +158,7 @@ sub check_session {
         $self->logger->info( "Value defined in session: $variable = $val_param" );
         $mojo->session( $variable => 0 );
         $mojo->stash( $variable => "" );
-        print "UNSET: $variable\n";
+        $self->logger->debug( "Unset in session: $variable" );
         return;
     }
 
