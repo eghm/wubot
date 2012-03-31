@@ -61,7 +61,7 @@ point in the rule tree.
 If no configuration is specified, then the entire message will be
 displayed to stdout using YAML::XS::Dump.  If a field is specified in
 the config, then the contents of that field will be dumped using
-YAML::Dump.
+YAML::XS::Dump.
 
 =head1 SUBROUTINES/METHODS
 
