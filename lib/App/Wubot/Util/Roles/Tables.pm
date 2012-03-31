@@ -8,7 +8,7 @@ use App::Wubot::SQLite;
 
 =head1 NAME
 
-App::Wubot::Util::Roles::Tables
+App::Wubot::Util::Roles::Tables - under construction
 
 
 =head1 SYNOPSIS
@@ -18,6 +18,7 @@ App::Wubot::Util::Roles::Tables
 
 =head1 DESCRIPTION
 
+TODO: add documentation here!
 
 =cut
 
@@ -45,6 +46,17 @@ has 'idfield' => ( is      => 'ro',
                    default => 'itemid',
                );
 
+
+=head1 SUBROUTINES/METHODS
+
+=over 8
+
+=item $obj->create( $item );
+
+TODO: document this method!
+
+=cut
+
 sub create {
     my ( $self, $item_h ) = @_;
 
@@ -62,6 +74,12 @@ sub create {
 
     return $item_h;
 }
+
+=item $obj->fetch( $itemid );
+
+TODO: document this method!
+
+=cut
 
 sub fetch {
     my ( $self, $itemid ) = @_;
@@ -84,6 +102,12 @@ sub fetch {
     return $item_h;
 }
 
+=item $obj->update( $item );
+
+TODO: document this method!
+
+=cut
+
 sub update {
     my ( $self, $item_h ) = @_;
 
@@ -100,3 +124,7 @@ sub update {
 
 
 1;
+
+__END__
+
+=back

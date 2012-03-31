@@ -5,6 +5,22 @@ use Moose;
 
 #use Mojo::Base 'Mojolicious::Controller';
 
+=head1 NAME
+
+App::Wubot::Util::WebUtil - under construction
+
+
+=head1 SYNOPSIS
+
+    use App::Wubot::Util::WebUtil;
+
+
+=head1 DESCRIPTION
+
+TODO: add documentation here!
+
+=cut
+
 has 'type' => ( is => 'ro',
                 isa => 'Str',
                 required => 1,
@@ -50,6 +66,15 @@ has 'logger'  => ( is => 'ro',
                    },
                );
 
+=head1 SUBROUTINES/METHODS
+
+=over 8
+
+=item $obj->get_item( $id, $callback );
+
+TODO: document this method!
+
+=cut
 
 sub get_item {
     my ( $self, $id, $callback ) = @_;
@@ -74,9 +99,22 @@ sub get_item {
     return $item_h;
 }
 
+=item $obj->create_item()
+
+TODO: document this method!
+
+=cut
+
+
 sub create_item {
 
 }
+
+=item $obj->get_submit_item()
+
+TODO: document this method!
+
+=cut
 
 sub get_submit_item {
     my ( $self, $mojo, $postproc, $id ) = @_;
@@ -110,6 +148,12 @@ sub get_submit_item {
     return $item;
 }
 
+=item $obj->update_item()
+
+TODO: document this method!
+
+=cut
+
 sub update_item {
     my ( $self, $item, $id, $preproc, $ref, $options ) = @_;
 
@@ -138,6 +182,12 @@ sub update_item {
 
     return 1;
 }
+
+=item $obj->check_session()
+
+TODO: document this method!
+
+=cut
 
 sub check_session {
     my ( $self, $mojo, $variable ) = @_;
@@ -168,10 +218,22 @@ sub check_session {
     return $val_session;
 }
 
+=item $obj->list()
+
+TODO: document this method!
+
+=cut
+
 sub list {
 
 
 }
+
+=item $obj->get_item_post()
+
+TODO: document this method!
+
+=cut
 
 sub get_item_post {
 
@@ -179,3 +241,7 @@ sub get_item_post {
 }
 
 1;
+
+__END__
+
+=back

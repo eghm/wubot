@@ -31,6 +31,34 @@ has 'logger'  => ( is => 'ro',
                    },
                );
 
+=head1 NAME
+
+App::Wubot::WubotX - WubotX extensions manager
+
+
+=head1 SYNOPSIS
+
+    use App::Wubot::WubotX;
+    my $wubotx = App::Wubot::WubotX->new();
+    $wubotx->get_plugins();
+
+=head1 DESCRIPTION
+
+This library should be used by any tools that use one or more WubotX
+extensions.  This is still in an early phase of development.
+
+=head1 SUBROUTINES/METHODS
+
+=over 8
+
+=item $obj->get_plugins()
+
+Search for all plugin directories in ~/wubot/WubotX.  All directories
+that are found are added to @INC.
+
+=cut
+
+
 sub get_plugins {
     my ( $self ) = @_;
 
@@ -62,6 +90,13 @@ sub get_plugins {
     return \@plugins;
 }
 
+
+=item $obj->get_webui()
+
+Loades the webui.yaml files from the various plugin directories.
+
+=cut
+
 sub get_webui {
     my ( $self ) = @_;
 
@@ -83,8 +118,14 @@ sub get_webui {
     $self->logger->debug( YAML::XS::Dump $webui_config );
 
     return $webui_config;
-
 }
+
+=item $obj->link_templates()
+
+Find templates in the plugin directory, and symlink them into the
+Mojolicious 'templates' directory.
+
+=cut
 
 sub link_templates {
     my ( $self ) = @_;
@@ -121,3 +162,7 @@ sub link_templates {
 }
 
 1;
+
+__END__
+
+=back
