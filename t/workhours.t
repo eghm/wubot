@@ -9,9 +9,10 @@ use App::Wubot::Logger;
 use App::Wubot::Plugin::WorkHours;
 
 ok( my $check = App::Wubot::Plugin::WorkHours->new( { class      => 'App::Wubot::Plugin::WorkHours',
-                                                 cache_file => '/dev/null',
-                                                 key        => 'WorkHours-testcase',
-                                             } ),
+                                                      cache_file => '/dev/null',
+                                                      key        => 'WorkHours-testcase',
+                                                      reactor    => sub {},
+                                                  } ),
     "Creating a new WorkHours check instance"
 );
 

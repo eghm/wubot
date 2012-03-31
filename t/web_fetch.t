@@ -10,9 +10,10 @@ use App::Wubot::Plugin::WebFetch;
 my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
 
 ok( my $check = App::Wubot::Plugin::WebFetch->new( { class      => 'App::Wubot::Plugin::OsxIdle',
-                                               cache_file => '/dev/null',
-                                               key        => 'OsxIdle-testcase',
-                                           } ),
+                                                     cache_file => '/dev/null',
+                                                     key        => 'OsxIdle-testcase',
+                                                     reactor    => sub {},
+                                                 } ),
     "Creating a new WebFetch check instance"
 );
 

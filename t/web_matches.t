@@ -27,6 +27,7 @@ has check => (
                                                       cache_file => "$tempdir/test.cache",
                                                       key        => 'WebMatches-testcase',
                                                       fetcher    => $mock_fetcher,
+                                                      reactor    => sub {},
                                                   } );
     },
 );

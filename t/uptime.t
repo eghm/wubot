@@ -9,9 +9,10 @@ use App::Wubot::Logger;
 use App::Wubot::Plugin::Uptime;
 
 ok( my $check = App::Wubot::Plugin::Uptime->new( { class      => 'App::Wubot::Plugin::Uptime',
-                                                 cache_file => "/dev/null",
-                                                 key        => 'Uptime-testcase',
-                                             } ),
+                                                   cache_file => "/dev/null",
+                                                   key        => 'Uptime-testcase',
+                                                   reactor    => sub {},
+                                               } ),
     "Creating a new Uptime check instance"
 );
 

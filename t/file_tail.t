@@ -11,6 +11,7 @@ use App::Wubot::Plugin::FileTail;
 my $init = { key        => 'FileTail-testcase',
              class      => 'App::Wubot::Plugin::FileTail',
              cache_file => '/dev/null',
+             reactor    => sub {},
          };
 
 my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );

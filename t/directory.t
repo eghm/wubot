@@ -13,9 +13,10 @@ my $tempdir2 = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
 
 
 ok( my $check = App::Wubot::Plugin::Directory->new( { class      => 'App::Wubot::Plugin::Directory',
-                                                 cache_file => "$tempdir2/foo",
-                                                 key        => 'Directory-testcase',
-                                             } ),
+                                                      cache_file => "$tempdir2/foo",
+                                                      key        => 'Directory-testcase',
+                                                      reactor    => sub {},
+                                                  } ),
     "Creating a new Directory check instance"
 );
 

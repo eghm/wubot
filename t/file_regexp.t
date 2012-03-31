@@ -10,6 +10,7 @@ use App::Wubot::Plugin::FileRegexp;
 my $init = { key        => 'FileRegexp-testcase',
              class      => 'App::Wubot::Plugin::FileRegexp',
              cache_file => '/dev/null',
+             reactor    => sub {},
          };
 
 my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );

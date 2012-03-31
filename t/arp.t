@@ -14,9 +14,10 @@ my $cache_file = "$tempdir/storage.yaml";
 
 {
     ok( my $check = App::Wubot::Plugin::Arp->new( { class      => 'App::Wubot::Plugin::Arp',
-                                               cache_file => $cache_file,
-                                               key        => 'Arp-testcase',
-                                           } ),
+                                                    cache_file => $cache_file,
+                                                    key        => 'Arp-testcase',
+                                                    reactor    => sub {},
+                                                } ),
         "Creating a new OSX Idle check instance"
     );
 

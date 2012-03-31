@@ -12,9 +12,10 @@ my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
 
 
 ok( my $check = App::Wubot::Plugin::Ping->new( { class      => 'App::Wubot::Plugin::OsxIdle',
-                                            cache_file => '/dev/null',
-                                            key        => 'OsxIdle-testcase',
-                                        } ),
+                                                 cache_file => '/dev/null',
+                                                 key        => 'OsxIdle-testcase',
+                                                 reactor    => sub {},
+                                             } ),
     "Creating a new Ping check instance"
 );
 

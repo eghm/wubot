@@ -18,9 +18,10 @@ my $class = "TestCase";
     my $cache_file = "$tempdir/$key.yaml";
 
     ok( my $test = App::Wubot::Plugin::TestCase->new( { key        => $key,
-                                                      class      => $class,
-                                                      cache_file => $cache_file,
-                                               } ),
+                                                        class      => $class,
+                                                        cache_file => $cache_file,
+                                                        reactor    => sub {},
+                                                    } ),
         "Creating a new testcase object"
     );
 
@@ -44,9 +45,10 @@ my $class = "TestCase";
     YAML::XS::DumpFile( $cache_file, $fake_cache_data );
 
     ok( my $test = App::Wubot::Plugin::TestCase->new( { key        => $key,
-                                                      class      => $class,
-                                                      cache_file => $cache_file,
-                                               } ),
+                                                        class      => $class,
+                                                        cache_file => $cache_file,
+                                                        reactor    => sub {},
+                                                    } ),
         "Creating a new testcase object"
     );
 
@@ -76,9 +78,10 @@ my $class = "TestCase";
     );
 
     ok( my $test = App::Wubot::Plugin::TestCase->new( { key        => $key,
-                                                   class      => $class,
-                                                   cache_file => $cache_file,
-                                               } ),
+                                                        class      => $class,
+                                                        cache_file => $cache_file,
+                                                        reactor    => sub {},
+                                                    } ),
         "Creating a new testcase object"
     );
 

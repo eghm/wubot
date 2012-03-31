@@ -19,6 +19,7 @@ BEGIN {
     ok( my $check = App::Wubot::Plugin::Pulse->new( { class      => 'App::Wubot::Plugin::Pulse',
                                                       cache_file => "$tempdir/Pulse.cache.yaml",
                                                       key        => 'Pulse-navi',
+                                                      reactor    => sub {},
                                              } ),
         "Creating a new Pulse check instance"
     );
@@ -180,8 +181,9 @@ BEGIN {
     my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
 
     ok( my $check = App::Wubot::Plugin::Pulse->new( { class      => 'App::Wubot::Plugin::Pulse',
-                                                 cache_file => "$tempdir/Pulse.cache.yaml",
-                                                 key        => 'Pulse-navi',
+                                                      cache_file => "$tempdir/Pulse.cache.yaml",
+                                                      key        => 'Pulse-navi',
+                                                      reactor    => sub {},
                                              } ),
         "Creating a new Pulse check instance"
     );
@@ -232,8 +234,9 @@ BEGIN {
     my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
 
     ok( my $check = App::Wubot::Plugin::Pulse->new( { class      => 'App::Wubot::Plugin::Pulse',
-                                                 cache_file => "$tempdir/Pulse.cache.yaml",
-                                                 key        => 'Pulse-navi',
+                                                      cache_file => "$tempdir/Pulse.cache.yaml",
+                                                      key        => 'Pulse-navi',
+                                                      reactor    => sub {},
                                              } ),
         "Creating a new Pulse check instance"
     );
