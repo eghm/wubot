@@ -66,19 +66,35 @@ To get the web interface up and going, see here:
   - http://search.cpan.org/perldoc?App::Wubot::Guide::WebUI
 
 Many of the modules previously distributed with wubot have now been
-removed from the core and into the WubotX subdirectory.  To enable
-them, symlink ~/wubot/WubotX to the WubotX subdirectory of the
-location where you unpacked the tarball, e.g.:
+removed from the core and into the WubotX project.  To enable
+them, check out the WubotX project into ~/wubot/WubotX
 
-  ln -s ~/projects/wubot/WubotX ~/wubot/WubotX
+  cd ~/wubot
+  git clone git://github.com/wu/WubotX.git
 
+Alternately you could check out WUbotX to another directory and
+symlink to ~/wubot/WubotX.
+
+When starting one of the wubot processes, you'll see a warning as it
+finds and enables each WubotX extension.  The libraries in these
+extensions are not actually being used yet--they have simply had their
+library paths added to @INC.  The libraries will only really be used
+if your monitor or reactor config references one of the libraries in
+one of the extensions.  That being said, if you wanted to selectively
+disable/remove some of the WubotX extensions, then you could remove
+directories you do not want from the WubotX directory.  Alternately
+you could make the directory ~/wubot/WubotX, then check out WUbotX to
+some other location, and then selectively symlink just the WubotX
+subdirectories that you want to enable into ~/wubot/WubotX.
+  
 In addition, you may need to copy schemas from the WubotX directories:
 
   cp -Rv ~/wubot/WubotX/*/schemas/ ~/wubot/schemas/
 
 Eventually the WubotX plugins will be broken out into separate modules
 and available on CPAN, but for the near future they will be available
-on github.  Sorry for the difficulty--this is still a work in progress.
+on github.  Sorry for the difficulty--this is still a work in
+progress.
 
 
 =head1 LICENSE AND COPYRIGHT
