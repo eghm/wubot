@@ -212,12 +212,12 @@ sub check {
         my $message;
 
         if ( $error eq "alarm\n" ) {
-            $self->logger->error( "Timed out after $timeout seconds for check: ", $self->key );
+            $self->logger->debug( "Timed out after $timeout seconds for check: ", $self->key );
             $message->{subject} = "Timed out after $timeout seconds";
         }
         else {
             my $key = $self->key;
-            $self->logger->error( "CRITICAL: $key: $error" );
+            $self->logger->debug( "CRITICAL: $key: $error" );
             $message->{subject} = "CRITICAL: $error";
         }
 

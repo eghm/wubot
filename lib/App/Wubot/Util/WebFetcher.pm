@@ -166,7 +166,7 @@ sub fetch {
 
     unless ( $res->is_success ) {
         my $results = $res->status_line || "no error text";
-        $self->logger->logdie( "Failure Fetching Content: $results" );
+        die "Failure Fetching Content: $results";
     }
 
     my $content = $res->decoded_content;

@@ -73,7 +73,7 @@ sub check {
     $self->cache_expire( $cache );
 
     unless ( $count ) {
-        $self->logger->logdie( "ERROR: no matches found" );
+        die "ERROR: no matches found";
     }
 
     return { react => \@react, cache => $cache };
