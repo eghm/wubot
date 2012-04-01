@@ -1,5 +1,11 @@
 Revision history for Wubot
 
+0.4.1 2012-04-01T12:12PDT
+
+  - pulled out WubotX into a separate project, http://github.com/wu/WubotX
+    - you must check out the WubotX project from github to use any plugins that were moved to WubotX
+    - see the README for instructions on getting and using Wubotx
+
 0.4.0 2012-03-30T22:07PDT
 
   - significantly shrinking the core and moving lots of libraries into WubotX extensions
