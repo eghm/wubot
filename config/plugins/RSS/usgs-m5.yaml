@@ -19,18 +19,13 @@ react:
       target_field: size
 
   - name: suppress less than 6.0
-    plugin: LessThan
-    config:
-      field: size
-      maximum: 6
-      set:
-        last_rule: 1
+    condition: size < 6
+    last_rule: 1
 
   - name: sticky greater than 7.0
-    plugin: GreaterThan
+    condition: size > 7
+    plugin: SetField
     config:
-      field: size
-      minimum: 7
       set:
         sticky: 1
         color: yellow
