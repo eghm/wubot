@@ -1,7 +1,7 @@
 #!/perl
 use strict;
 
-use Test::More tests => 36;
+use Test::More;
 
 use File::Temp qw/ tempdir /;
 
@@ -78,48 +78,49 @@ BEGIN {
         );
     }
 
+    use POSIX qw(strftime);
 
     {
         my $time = time;
+        my $minute = strftime( "%M", localtime( $time ) );
 
-        ok( my $results_h = $check->check( { cache => { lastupdate => $time } } ),
+        ok( my $results_h = $check->check( { cache => { lastupdate => $time, lastminute => $minute } } ),
             "Calling check() method after 0 minutes of no checks"
         );
 
-        is( scalar @{ $results_h->{react} },
-            0,
-            "Checking that 0 messages were sent when pulse ran again in the same second"
+        ok( ! $results_h->{react},
+            "Checking that no messages sent when pulse ran again in the same second"
         );
     }
 
 
-    {
-        my $time = time - 30;
+    # {
+    #     my $time = time - 30;
 
-        ok( my $results_h = $check->check( { cache => { lastupdate => $time } } ),
-            "Calling check() method after less than 1 minute since last check"
-        );
+    #     ok( my $results_h = $check->check( { cache => { lastupdate => $time } } ),
+    #         "Calling check() method after less than 1 minute since last check"
+    #     );
 
-        is( scalar @{ $results_h->{react} },
-            0,
-            "Checking that 0 messages were sent when pulse ran again in the same second"
-        );
-    }
+    #     is( scalar @{ $results_h->{react} },
+    #         0,
+    #         "Checking that 0 messages were sent when pulse ran again in the same second"
+    #     );
+    # }
 
 
-    {
-        my $time = time - 59;
+    # {
+    #     my $time = time - 59;
 
-        ok( my $results_h = $check->check( { cache => { lastupdate => $time } } ),
-            "Calling check() method 59 seconds since last check"
-        );
+    #     ok( my $results_h = $check->check( { cache => { lastupdate => $time } } ),
+    #         "Calling check() method 59 seconds since last check"
+    #     );
 
-        is( scalar @{ $results_h->{react} },
-            0,
-            "Checking that no messages were sent when pulse ran again in 59 seconds"
-        );
+    #     is( scalar @{ $results_h->{react} },
+    #         0,
+    #         "Checking that no messages were sent when pulse ran again in 59 seconds"
+    #     );
 
-    }
+    # }
 
     {
         my $time = time - 60;
@@ -259,9 +260,89 @@ BEGIN {
     }
 
     is( scalar @results,
+        101,
+        "Checking that 101 pulses were sent over 6000 seconds"
+    );
+
+}
+
+# max_pulses
+{
+    my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
+
+    ok( my $check = App::Wubot::Plugin::Pulse->new( { class      => 'App::Wubot::Plugin::Pulse',
+                                                      cache_file => "$tempdir/Pulse.cache.yaml",
+                                                      key        => 'Pulse-navi',
+                                                      reactor    => sub {},
+                                             } ),
+        "Creating a new Pulse check instance"
+    );
+
+    # Fri Aug 26 16:48:40 2011 PDT
+    my $time = 1314402471;
+
+    # Fri Aug 26 16:43:40 2011 PDT
+    my $cache = { lastupdate => $time - 6000 };
+
+    my $results = $check->check( { config => { max_pulses => 5 },
+                                   cache  => $cache,
+                               } )->{react};
+
+    is( scalar @{ $results },
+        5,
+        "Checking that max_pulses limited pulses to 5"
+    );
+
+    is( $results->[0]->{age},
+        4,
+        "checking that oldest pulse is 4 minutes old"
+    );
+
+    is( $results->[4]->{age},
+        0,
+        "Checking that newest pulse is fresh"
+    );
+
+}
+
+# missing times, another approach
+{
+    my $tempdir = tempdir( "/tmp/tmpdir-XXXXXXXXXX", CLEANUP => 1 );
+
+    ok( my $check = App::Wubot::Plugin::Pulse->new( { class      => 'App::Wubot::Plugin::Pulse',
+                                                      cache_file => "$tempdir/Pulse.cache.yaml",
+                                                      key        => 'Pulse-navi',
+                                                      reactor    => sub {},
+                                             } ),
+        "Creating a new Pulse check instance"
+    );
+
+    my $end_time = 1314402480;
+    my $start_time = $end_time - 6000 + 60;
+    my $next_time = $start_time;
+
+    # Fri Aug 26 16:43:40 2011 PDT
+    my $cache = { lastupdate => $start_time };
+
+    my @results;
+
+    while ( $next_time < $end_time ) {
+
+        # add some portion of a minute
+        $next_time += rand(59);
+
+        my $results = $check->check( { cache => $cache, now => $next_time } )->{react};
+        next unless $results;
+
+        push @results, @{ $results };
+
+    }
+
+    is( scalar @results,
         100,
         "Checking that 100 pulses were sent over 6000 seconds"
     );
 
 }
 
+done_testing;
