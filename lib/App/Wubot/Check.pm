@@ -141,7 +141,7 @@ sub init {
 
     return unless $self->instance->can( 'init' );
 
-    my $cache = $self->instance->get_cache();
+    my $cache = $self->instance->read_cache();
 
     my $results = $self->instance->init( { config => $config, cache => $cache } );
 
@@ -182,7 +182,7 @@ completes and the reactor has processed any messages.
 sub check {
     my ( $self, $config ) = @_;
 
-    my $cache = $self->instance->get_cache() || {};
+    my $cache = $self->instance->read_cache() || {};
 
     $self->logger->debug( "calling check for instance: ", $self->key );
 

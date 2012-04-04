@@ -97,48 +97,32 @@ my $class = "TestCase";
 
 }
 
+# re-read cache on change
+{
+    my $key = "$class-three";
+    my $cache_file = "$tempdir/$key.yaml";
 
-# {
-#     my $key = "$class-four";
-#     my $cache_file = "$tempdir/$key.yaml";
+    YAML::XS::DumpFile( $cache_file, { a => 'b' } );
 
-#     ok( my $test = App::Wubot::Plugin::TestCase->new( { key        => $key,
-#                                                    class      => $class,
-#                                                    cache_file => $cache_file,
-#                                                } ),
-#         "Creating a new testcase object"
-#     );
+    ok( my $test = App::Wubot::Plugin::TestCase->new( { key        => $key,
+                                                        class      => $class,
+                                                        cache_file => $cache_file,
+                                                        reactor    => sub {},
+                                                    } ),
+        "Creating a new testcase object"
+    );
 
-#     my $content = get( 'http://epguides.com/Futurama/' );
+    is_deeply( $test->read_cache(),
+               { a => 'b' },
+               "Checking the read_cache() method with initial cache file"
+           );
 
-#     ok( $content,
-#         "Checking that test content was retrieved"
-#     );
+    # sleep a second so that the lastupdate time on the cache file has changed.
+    sleep 1;
+    YAML::XS::DumpFile( $cache_file, { a => 'c' } );
 
-#     my $cache_data = {};
-
-#     for my $line ( split /\n/, $content ) {
-#         next unless $line =~ m|^\d+\s+\d+\-\d+\s+\S+\s+\S+\s+(.*)|;
-
-#         $test->cache_mark_seen( $cache_data, $1 );
-#         print "Marking seen: $1\n";
-#     }
-
-#     ok( $test->write_cache( $cache_data ),
-#         "Writing out cache data"
-#     );
-
-#     ok( $test->read_cache(),
-#         "Checking the read_cache() method"
-#     );
-
-#     is_deeply( $test->read_cache(),
-#                $cache_data,
-#                "Checking read_cache returned our cache data"
-#            );
-
-#     system( "cat $cache_file" );
-
-
-# }
-
+    is_deeply( $test->read_cache(),
+               { a => 'c' },
+               "Checking the read_cache() re-reads cache file on change"
+           );
+}
