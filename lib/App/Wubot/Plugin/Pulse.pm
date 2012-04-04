@@ -32,7 +32,8 @@ sub check {
 
     if ( $cache->{lastminute} && $cache->{lastminute} eq $minute ) {
         $self->logger->info( "Already sent a pulse this minute: $minute" );
-        return {};
+        my $delay = $self->get_delay();
+        return { delay => $delay };
     }
     $cache->{lastminute} = $minute;
 
@@ -93,11 +94,19 @@ sub check {
         push @messages, $message;
     }
 
+    my $delay = $self->get_delay();
+
+    return { react => \@messages, cache => $cache, delay => $delay };
+}
+
+sub get_delay {
+    my ( $self ) = @_;
+
     # attempt to sync up pulses with the minute
     my $second = strftime( "%S", localtime() );
     my $delay = 60 - $second;
 
-    return { react => \@messages, cache => $cache, delay => $delay };
+    return $delay;
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -163,6 +172,14 @@ late, then the 'age' field on the message will indicate the number of
 minutes old that the message was at the time it was generated.  If the
 'age' field is false, that indicates that the message was sent during
 the minute that was indicated on the message.
+
+There is also a 'max_pulses' config param that can be used to limit
+the maximum number of missed pulses that will be sent.  This is
+designed to prevent a massive flood of pulses (e.g. in the event that
+wubot had not been running for months and then is started back up).
+max_pulses defaults to 10080, which is 1 week's worth of pulses:
+
+  1 pulse/minute * 60 minutes/hour * 24 hours/day * 7 days = 10080 pulses
 
 =head1 SCHEDULED TASKS
 
