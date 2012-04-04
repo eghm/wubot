@@ -8,6 +8,12 @@ use Test::More;
 use Test::Routine;
 use Test::Routine::Util;
 
+BEGIN {
+    if ( $ENV{HARNESS_ACTIVE} ) {
+        $ENV{WUBOT_SCHEMAS} = "config/schemas";
+    }
+}
+
 use App::Wubot::Logger;
 use App::Wubot::Reactor::SQLite;
 
