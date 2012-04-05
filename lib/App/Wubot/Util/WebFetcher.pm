@@ -133,6 +133,10 @@ sub fetch {
         $ua->proxy(['https'], $config->{proxy} );
     }
 
+    if ( $config->{socks_proxy} ) {
+        $ua->proxy(['socks'],  $config->{socks_proxy} );
+    }
+
     if ( $config->{ignore_cert_errors} ) {
         $self->logger->debug( "Disabling certificate verification" );
         $ua->ssl_opts( verify_hostname => 0 )
