@@ -8,6 +8,8 @@
  * http://docs.jquery.com/UI/Theming/API
  */
 
+tr td .highlight { background-color: #191919 !important; }
+
 /* Layout helpers
 ----------------------------------*/
 .ui-helper-hidden { display: none; }
