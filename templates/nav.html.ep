@@ -20,9 +20,7 @@
     |
     <a href="/graphs">graphs</a>
     |
-    <%= strftime( '%a %b %d %l:%M %p', localtime( time ) ); %>
-    |
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;
     
   </font>
 
