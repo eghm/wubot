@@ -133,10 +133,6 @@ sub fetch {
         $ua->proxy(['https'], $config->{proxy} );
     }
 
-    if ( $config->{socks_proxy} ) {
-        $ua->proxy(['socks'],  $config->{socks_proxy} );
-    }
-
     if ( $config->{ignore_cert_errors} ) {
         $self->logger->debug( "Disabling certificate verification" );
         $ua->ssl_opts( verify_hostname => 0 )
@@ -187,3 +183,23 @@ __PACKAGE__->meta->make_immutable;
 __END__
 
 =back
+
+=head1 SOCKS PROXIES
+
+If you are using a socks proxy, set the 'proxy' to something like
+this:
+
+  socks://localhost:1080/
+
+You can create a compatible socks proxy using ssh:
+
+  ssh -N -D 1080 somehost
+
+You may also need to install:
+
+  LWP::Protocol::socks
+
+If LWP::Protocol::socks is not properly installed, you may see an
+error message such as:
+
+  501 Protocol scheme ''socks'' is not supported.
