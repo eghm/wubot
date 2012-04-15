@@ -1,5 +1,18 @@
 Revision history for Wubot
 
+0.4.2 2012-04-14T23:50PDT
+
+  - pulled more plugins out of wubot core and moved into WubotX
+    - WubotX is still under development, please see the readme for info to install WubotX plugins
+  - remove LessThan, GreaterThan, and False reactor plugins, replaced by conditions
+  - resolve a bug in the Pulse plugin where some pulses were being skipped
+  - added jquery for highlighting selected row and date chooser for taskbot - thanks to eghm!
+  - add socks proxy support for plugins that use WebFetcher
+  - failure of a check sends a failure message rather than logging to stdout
+  - always re-read the cache file when running checks
+    - fixes a bug with plugins that fork and then update the cache
+  - fix broken sqlite test case
+
 0.4.1 2012-04-01T12:12PDT
 
   - pulled out WubotX into a separate project, http://github.com/wu/WubotX
