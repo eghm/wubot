@@ -118,7 +118,7 @@ sub react {
         $self->logger->debug( " " x $depth, "- rule matched: $rule->{name}" );
 
         eval {
-            push @{ $message->{wubot_rulelog}->{$hostname} }, $rule->{name};
+            push @{ $message->{wubot_rulelog} }, join( ":", $hostname, $rule->{name} );
         };
 
         if ( $rule->{rules} ) {
