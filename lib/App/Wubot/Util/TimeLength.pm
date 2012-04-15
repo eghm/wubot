@@ -165,6 +165,12 @@ sub get_human_readable {
         elsif ( $time eq "h" ) {
             next TIME if $abs_seconds > $constants->{w};
         }
+        elsif ( $time eq "d" ) {
+            next TIME if $abs_seconds > $constants->{M};
+        }
+        elsif ( $time eq "w" ) {
+            next TIME if $abs_seconds > $constants->{y};
+        }
 
         my $num_seconds = $constants->{ $time };
 
