@@ -74,18 +74,38 @@ ok( my $timelength = App::Wubot::Util::TimeLength->new(),
     );
 
     is( $timelength->get_human_readable( 60*60*24*31 ),
-        "1M1d",
-        "Human-readable time for 1 month and 1 day"
+        "1M",
+        "Human-readable time for 1 month and 1 day rounds to 1M"
+    );
+
+    is( $timelength->get_human_readable( 60*60*24*38 ),
+        "1M1w",
+        "Human-readable time for 1 month and 1 week"
+    );
+
+    is( $timelength->get_human_readable( 60*60*24*39 ),
+        "1M1w",
+        "Human-readable time for 1 month and 1 week and 1 day rounds to 1M1w"
     );
 
     is( $timelength->get_human_readable( 60*60*24*366 ),
-        "1y1d",
-        "Human-readable time for 366 days"
+        "1y",
+        "Human-readable time for 366 days rounds to 1y"
+    );
+
+    is( $timelength->get_human_readable( 60*60*24*396 ),
+        "1y1M",
+        "Human-readable time for 365 days + 30 days is 1Y1M"
     );
 
     is( $timelength->get_human_readable( 60*60*24*365*20 + 60*60*24*7 ),
-        "20y1w",
-        "Human-readable time for 20 years and 1 week"
+        "20y",
+        "Human-readable time for 20 years and 1 week rounds to 20 years"
+    );
+
+    is( $timelength->get_human_readable( 60*60*24*365*20 + 60*60*24*30 ),
+        "20y1M",
+        "Human-readable time for 20 years and 1 month"
     );
 
 
