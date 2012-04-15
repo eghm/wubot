@@ -32,7 +32,7 @@ sub check {
 
     if ( $cache->{lastminute} && $cache->{lastminute} eq $minute ) {
         $self->logger->info( "Already sent a pulse this minute: $minute" );
-        my $delay = $self->get_delay();
+        my $delay = $self->_get_delay();
         return { delay => $delay };
     }
     $cache->{lastminute} = $minute;
@@ -94,12 +94,12 @@ sub check {
         push @messages, $message;
     }
 
-    my $delay = $self->get_delay();
+    my $delay = $self->_get_delay();
 
     return { react => \@messages, cache => $cache, delay => $delay };
 }
 
-sub get_delay {
+sub _get_delay {
     my ( $self ) = @_;
 
     # attempt to sync up pulses with the minute
