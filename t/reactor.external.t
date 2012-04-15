@@ -127,7 +127,7 @@ test "running rule in main rules file" => sub {
     is_deeply( $results,
                { name => 'TestCase1',
                  foo  => 1,
-                 wubot_rulelog => { $hostname => [ qw( rule1 ) ] },
+                 wubot_rulelog => [ "$hostname:rule1" ],
              },
                "Calling react() for TestCase1"
            );
@@ -145,7 +145,7 @@ test "running rule in first external rules file" => sub {
     is_deeply( $results,
                { name => 'TestCase2',
                  bar  => 1,
-                 wubot_rulelog => { $hostname => [ qw( rule2 rule4 ) ] },
+                 wubot_rulelog => [ "$hostname:rule2", "$hostname:rule4" ],
              },
                "Calling react() for TestCase2"
            );
@@ -163,7 +163,7 @@ test "running rule in first external rules file, second run reads from cache" =>
     is_deeply( $results,
                { name => 'TestCase2',
                  bar  => 1,
-                 wubot_rulelog => { $hostname => [ qw( rule2 rule4 ) ] },
+                 wubot_rulelog => [ "$hostname:rule2", "$hostname:rule4" ],
              },
                "Calling react() for TestCase2"
            );
@@ -186,7 +186,7 @@ test "running rule in external file specified by rulesfile_field" => sub {
                  baz  => 1,
                  x    => 1,
                  myrules => "$tempdir/rules2.yaml",
-                 wubot_rulelog => { $hostname => [ qw( rule3 rule5 ) ] },
+                 wubot_rulelog => [ "$hostname:rule3", "$hostname:rule5" ],
              },
                "Calling react() for TestCase3"
            );
@@ -227,7 +227,7 @@ END_RULES4
                    { name => 'TestCase4',
                      baz  => 1,
                      x    => 1,
-                     wubot_rulelog => { $hostname => [ qw( rule4 rule6 ) ] },
+                     wubot_rulelog => [ "$hostname:rule4", "$hostname:rule6" ],
                  },
                    "Calling react() for TestCase4"
                );
@@ -266,7 +266,7 @@ END_RULES4
                    { name => 'TestCase4',
                      baz  => 2,
                      x    => 1,
-                     wubot_rulelog => { $hostname => [ qw( rule4 rule6 ) ] },
+                     wubot_rulelog => [ "$hostname:rule4", "$hostname:rule6" ],
                  },
                    "Checking results for test case 4"
                );
@@ -285,7 +285,7 @@ END_RULES4
 #     is_deeply( $results,
 #                { name => 'TestCase3',
 #                  baz  => 1,
-#                  wubot_rulelog => { $hostname => [ qw( rule3 rule5 ) ] },
+#                     wubot_rulelog => [ qw( $hostname:rule3 $hostname:rule5 ) ],
 #              },
 #                "Calling react() for TestCase3"
 #            );
